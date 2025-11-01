@@ -461,7 +461,7 @@ export default function Footer() {
       {/* 🔹 Bottom Section */}
       <div className="text-center mt-6">
         <p className="text-gray-600 text-sm md:text-base">
-          © {new Date().getFullYear()} Career School HR Solutions — All Rights Reserved.
+          © {new Date().getFullYear()} Career School HR & IT Solutions — All Rights Reserved.
         </p>
 
         <div className="flex flex-col items-center mt-4 text-gray-600 text-xs sm:text-sm md:text-base">

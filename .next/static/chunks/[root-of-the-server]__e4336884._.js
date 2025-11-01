@@ -3548,7 +3548,7 @@ function Footer() {
                         children: [
                             "© ",
                             new Date().getFullYear(),
-                            " Career School HR Solutions — All Rights Reserved."
+                            " Career School HR & IT Solutions — All Rights Reserved."
                         ]
                     }, void 0, true, {
                         fileName: "[project]/cshr-website-full/components/Footer.js",

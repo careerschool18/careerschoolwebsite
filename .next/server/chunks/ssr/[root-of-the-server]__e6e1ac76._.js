@@ -8,54 +8,73 @@ module.exports = mod;
 "[project]/cshr-website-full/pages/_app.js [ssr] (ecmascript)", ((__turbopack_context__) => {
 "use strict";
 
+// app/layout.js
 __turbopack_context__.s([
     "default",
-    ()=>Document
+    ()=>RootLayout,
+    "metadata",
+    ()=>metadata
 ]);
 var __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__ = __turbopack_context__.i("[externals]/react/jsx-dev-runtime [external] (react/jsx-dev-runtime, cjs)");
-var __TURBOPACK__imported__module__$5b$project$5d2f$cshr$2d$website$2d$full$2f$node_modules$2f$next$2f$document$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/cshr-website-full/node_modules/next/document.js [ssr] (ecmascript)");
 ;
-;
-function Document() {
-    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$cshr$2d$website$2d$full$2f$node_modules$2f$next$2f$document$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__["Html"], {
+const metadata = {
+    title: "Careerschool HR & IT Solutions | Best Training, Internship & Placement in Chennai & Nellore",
+    description: "India’s #1 Training & Placement Institute for Python, Full Stack Development, Java, Web Development, Digital Marketing, Data Analytics, HR and more. Learn, Intern & Get Placed with Careerschool!",
+    keywords: "careerschool, career school, careerschool hr solutions, careerschool it solutions, python full stack training, java full stack training, data analytics training, data analysis course, digital marketing training, ai and machine learning course, power bi training, sql training, excel course, finance internship, internship in chennai, internship in nellore, training institute in chennai, training institute in nellore, software training, web development course, full stack course, placement support, job oriented training, college placement training, campus drive, career guidance, online training, offline training, certification course, professional courses, mba student training, engineering student training, arts student training, job seekers course, fresher training, career school chennai, career school nellore",
+    robots: "index, follow",
+    authors: [
+        {
+            name: "Careerschool HR & IT Solutions"
+        }
+    ]
+};
+function RootLayout({ children }) {
+    return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("html", {
         lang: "en",
         children: [
-            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$cshr$2d$website$2d$full$2f$node_modules$2f$next$2f$document$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__["Head"], {
-                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("link", {
-                    rel: "icon",
-                    href: "/favicon.ico"
-                }, void 0, false, {
-                    fileName: "[project]/cshr-website-full/pages/_app.js",
-                    lineNumber: 8,
-                    columnNumber: 9
-                }, this)
-            }, void 0, false, {
-                fileName: "[project]/cshr-website-full/pages/_app.js",
-                lineNumber: 6,
-                columnNumber: 7
-            }, this),
-            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("body", {
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("head", {
                 children: [
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$cshr$2d$website$2d$full$2f$node_modules$2f$next$2f$document$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__["Main"], {}, void 0, false, {
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
+                        httpEquiv: "Content-Type",
+                        content: "text/html; charset=utf-8"
+                    }, void 0, false, {
                         fileName: "[project]/cshr-website-full/pages/_app.js",
-                        lineNumber: 13,
+                        lineNumber: 16,
                         columnNumber: 9
                     }, this),
-                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$cshr$2d$website$2d$full$2f$node_modules$2f$next$2f$document$2e$js__$5b$ssr$5d$__$28$ecmascript$29$__["NextScript"], {}, void 0, false, {
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
+                        name: "language",
+                        content: "English"
+                    }, void 0, false, {
                         fileName: "[project]/cshr-website-full/pages/_app.js",
-                        lineNumber: 14,
+                        lineNumber: 17,
+                        columnNumber: 9
+                    }, this),
+                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("meta", {
+                        name: "revisit-after",
+                        content: "7 days"
+                    }, void 0, false, {
+                        fileName: "[project]/cshr-website-full/pages/_app.js",
+                        lineNumber: 18,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/cshr-website-full/pages/_app.js",
-                lineNumber: 12,
+                lineNumber: 14,
+                columnNumber: 7
+            }, this),
+            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$externals$5d2f$react$2f$jsx$2d$dev$2d$runtime__$5b$external$5d$__$28$react$2f$jsx$2d$dev$2d$runtime$2c$__cjs$29$__["jsxDEV"])("body", {
+                children: children
+            }, void 0, false, {
+                fileName: "[project]/cshr-website-full/pages/_app.js",
+                lineNumber: 20,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/cshr-website-full/pages/_app.js",
-        lineNumber: 5,
+        lineNumber: 13,
         columnNumber: 5
     }, this);
 }
