@@ -81,7 +81,7 @@ export default function FullImage({
           }}
         >
           <img
-            src="/Zoho images/careerschool-zoho-training.png"
+            src="/Zoho Images/careerschool-zoho-training.png"
             className="w-full h-full object-cover"
           />
         </div>
@@ -108,4 +108,5 @@ export default function FullImage({
     </section>
   );
 }
+
 
