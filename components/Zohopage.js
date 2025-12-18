@@ -2,10 +2,10 @@
 "use client";
 
 export default function FullImage({
-  heroSrc = "/Zoho images/careerschool-zoho-main.png",
-  zohoLogo = "/Zoho images/ZOHO LOGO - Zoho Card.png",
-  payrollLogo = "/Zoho images/Zoho Payroll Logo - Zoho Card.png",
-  cshrLogo = "/Zoho images/CSHR LOGO White - Zoho Card.png",
+  heroSrc = "/Zoho Images/careerschool-zoho-main.png",
+  zohoLogo = "/Zoho Images/ZOHO LOGO - Zoho Card.png",
+  payrollLogo = "/Zoho Images/Zoho Payroll Logo - Zoho Card.png",
+  cshrLogo = "/Zoho Images/CSHR LOGO White - Zoho Card.png",
 }) {
   return (
     <section className="w-full bg-white pt-0 pb-8">
@@ -108,3 +108,4 @@ export default function FullImage({
     </section>
   );
 }
+
