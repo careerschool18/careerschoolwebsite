@@ -37,15 +37,20 @@ export default function Header() {
 
   return (
     <header className="flex items-center justify-between px-6 py-4 bg-white shadow relative">
-      {/* 🔹 Clickable Logo */}
+      {/* Logo */}
       <div
-        className="flex items-center gap-2 cursor-pointer"
-        onClick={handleLogoClick}
+        className="flex items-center gap-4 cursor-pointer"
+        onClick={() => window.location.reload()}
       >
         <img
-          src="/Footer Logo/New CSHR Logo (TM).png"
-          alt="Logo"
-          className="h-10 w-auto transition-transform hover:scale-105"
+          src="/Nav Logo/CSHR - Nav Logo.png"
+          className="h-10"
+          alt="CSHR Logo"
+        />
+        <img
+          src="/Nav Logo/CSIT - Nav Logo.png"
+          className="h-10"
+          alt="CSIT Logo"
         />
       </div>
 
