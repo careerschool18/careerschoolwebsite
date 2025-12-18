@@ -9,6 +9,7 @@ import Courses from "../components/Courses";
 import Alumni from "../components/Alumni";
 import NeedHelp from "../components/NeedHelp";
 import Footer from "../components/Footer";
+import Zohopage from "../components/Zohopage";
 
 export default function Home() {
   return (
@@ -16,11 +17,12 @@ export default function Home() {
       <HeroBanner />
       <Header />
       <FullImage />
-      <GoogleReview/>
-       <Discover />
+      <Zohopage />
+      <GoogleReview />
+      <Discover />
       <StudentsReview />
-      <MeetOurStars />
       <Courses />
+      <MeetOurStars />
       <Alumni />
       <NeedHelp />
       <Footer />

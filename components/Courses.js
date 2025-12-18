@@ -26,18 +26,17 @@ export default function Courses() {
   const enrollLink =
     "https://243742367.hs-sites-na2.com/training-internship-with-certification-launch-your-career-today";
 
-  // 🔹 Mobile auto-slide logic
-  const [current, setCurrent] = useState(0);
+    const [current, setCurrent] = useState(0);
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrent((prev) => (prev + 1) % courses.length);
-    }, 3000); // every 3s
+    }, 3000); 
     return () => clearInterval(interval);
   }, [courses.length]);
 
   return (
     <section id="courses" className="w-full bg-white py-12 overflow-hidden">
-      {/* 🔹 Heading */}
+      
       <div className="text-center mb-10">
         <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#004AAD] mb-3">
           Next Batch Starts Soon
@@ -48,8 +47,7 @@ export default function Courses() {
         </p>
       </div>
 
-      {/* 🔹 Desktop View (3 Cards) */}
-      <div className="hidden sm:flex justify-center gap-6 px-6 flex-wrap">
+        <div className="hidden sm:flex justify-center gap-6 px-6 flex-wrap">
         {courses.map((course, i) => (
           <div
             key={i}
@@ -89,8 +87,7 @@ export default function Courses() {
         ))}
       </div>
 
-      {/* 🔹 Mobile View (Auto-slide carousel) */}
-      <div className="block sm:hidden relative w-full px-6">
+       <div className="block sm:hidden relative w-full px-6">
         <div className="flex justify-center items-center">
           <div
             key={current}
@@ -129,8 +126,7 @@ export default function Courses() {
           </div>
         </div>
 
-        {/* Small dots indicator */}
-        <div className="flex justify-center mt-4 space-x-2">
+         <div className="flex justify-center mt-4 space-x-2">
           {courses.map((_, i) => (
             <div
               key={i}
@@ -142,8 +138,7 @@ export default function Courses() {
         </div>
       </div>
 
-      {/* 🔹 Explore Button */}
-      <div className="mt-12 text-center">
+       <div className="mt-12 text-center">
         <a href={enrollLink} target="_blank" rel="noopener noreferrer">
           <button
             className="font-extrabold px-7 py-3 rounded-full text-sm sm:text-base transition hover:scale-[1.05]"
