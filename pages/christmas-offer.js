@@ -71,27 +71,19 @@ export default function ChristmasOfferLanding() {
 
   useEffect(() => {
     const script = document.createElement("script");
-    script.src = "https://js-na1.hsforms.net/forms/embed/v2.js";
+    script.src = "https://js-na2.hsforms.net/forms/embed/243742367.js";
+    script.defer = true;
     script.charset = "utf-8";
     script.type = "text/javascript";
-    script.onload = () => {
-      if (window.hbspt) {
-        window.hbspt.forms.create({
-          region: "na2",
-          portalId: "243742367",
-          formId: "6c8ac9f5-394a-4e95-8f95-19e296c157ac",
-          target: "#hubspot-form-container",
-        });
-      }
-    };
+
     document.body.appendChild(script);
+
     return () => {
       if (document.body.contains(script)) {
         document.body.removeChild(script);
       }
     };
   }, []);
-
   const handleGiftClick = () => {
     setGiftOpened(true);
     setTimeout(() => {
@@ -1178,7 +1170,13 @@ rgb(255, 230, 0) 50%,
         </section>
 
         {/* HubSpot Form Render */}
-        <div id="hubspot-form-container" style={{ position: "relative" }}></div>
+        <div
+          className="hs-form-frame"
+          data-region="na2"
+          data-form-id="51a399dd-a778-4d28-b742-8476032c7d63"
+          data-portal-id="243742367"
+          style={{ minHeight: "400px" }}
+        ></div>
 
         {/* Why CareerSchool */}
         <div
