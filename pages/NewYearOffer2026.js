@@ -123,24 +123,25 @@ export default function NewYearOffer2026() {
       ],
     },
     {
-      title: "Java Mastery Program",
+      title: "Java Full-Stack Development",
       image: "/Newyear/java-svg.svg",
       syllabus: [
         "Core Java & OOPS",
         "Collections & Exception Handling",
+        "HTMl,CSS,JavaScript",
         "JDBC & MySQL",
         "Spring & Spring Boot",
         "REST APIs",
       ],
     },
     {
-      title: "Python Pro Development",
+      title: "Python Full-Stack Development",
       image: "/Newyear/python-svg.svg",
       syllabus: [
         "Python Fundamentals",
         "OOPS with Python",
-        "Django & Flask",
-        "Automation & Scripting",
+        "HTMl,CSS,JavaScript",
+        "Django / Flask",
         "Mini Projects",
       ],
     },
@@ -156,7 +157,7 @@ export default function NewYearOffer2026() {
     },
     {
       title: "HR Analytics",
-      image: "/Newyear/HRAnalystics.svg",
+      image: "/Newyear/HRAnalystics.png",
       syllabus: [
         "Talent Acquisition",
         "Talent Management",
