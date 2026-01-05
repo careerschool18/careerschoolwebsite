@@ -559,7 +559,7 @@ export default function NewYearOffer2026() {
             </div>
 
             <button className="form-expand-btn" onClick={toggleFormExpand}>
-              {isFormExpanded ? 'Show Less' : 'Show More Fields'}
+              {isFormExpanded ? 'Show Less' : 'Show More'}
               <span className={`expand-arrow ${isFormExpanded ? 'rotated' : ''}`}>
                 ▼
               </span>
