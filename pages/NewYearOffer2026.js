@@ -128,7 +128,7 @@ export default function NewYearOffer2026() {
       syllabus: [
         "Core Java & OOPS",
         "Collections & Exception Handling",
-        "HTMl,CSS,JavaScript",
+        "HTML,CSS,JavaScript",
         "JDBC & MySQL",
         "Spring & Spring Boot",
         "REST APIs",
@@ -140,7 +140,7 @@ export default function NewYearOffer2026() {
       syllabus: [
         "Python Fundamentals",
         "OOPS with Python",
-        "HTMl,CSS,JavaScript",
+        "HTML,CSS,JavaScript",
         "Django / Flask",
         "Mini Projects",
       ],
