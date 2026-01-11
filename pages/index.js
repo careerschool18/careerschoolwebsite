@@ -10,13 +10,14 @@ import Alumni from "../components/Alumni";
 import NeedHelp from "../components/NeedHelp";
 import Footer from "../components/Footer";
 import Zohopage from "../components/Zohopage";
-
+import Popupform from "../components/Popupform";
 
 export default function Home() {
   return (
     <main>
       <HeroBanner />
       <Header />
+      <Popupform/>
       <FullImage />
       <Zohopage />
       <GoogleReview />
