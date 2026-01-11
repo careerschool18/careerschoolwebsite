@@ -284,13 +284,15 @@ export default function CourseEnquiryPopup({
 
       console.log("Sending payload:", apiPayload); // For debugging
 console.log(process.env.NEXT_PUBLIC_API_URL);
-     const response = await fetch("/api/v1", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(apiPayload),
-      });
+   
+const response = await fetch("http://localhost:8080/api/v1/enquiries", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(apiPayload),
+  }
+);
 
       const result = await response.json();
 
