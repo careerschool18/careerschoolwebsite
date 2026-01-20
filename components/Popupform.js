@@ -246,87 +246,81 @@ export default function CourseEnquiryPopup({
     };
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    // Validation
-    const nameErr = validateName(formData.fullName);
-    const phoneErr = validatePhone(formData.phone);
-    const emailErr = validateEmail(formData.email);
-    const stateErr = !formData.state ? "Please select your state" : "";
+  // --- VALIDATION ---
+  const nameErr = validateName(formData.fullName);
+  const phoneErr = validatePhone(formData.phone);
+  const emailErr = validateEmail(formData.email);
+  const stateErr = !formData.state ? "Please select your state" : "";
 
-    let extraErr = {};
-    if (formData.enquiryFor === "Courses / Internship") {
-      if (!formData.course) extraErr.course = "Please select a course or internship";
-      if (formData.course === "Other" && !formData.customCourse) extraErr.customCourse = "Please enter the course name";
-    } else if (formData.enquiryFor === "Jobs") {
-      if (!formData.preferredRole) extraErr.preferredRole = "Please enter your preferred role";
-    } else {
-      extraErr.enquiryFor = "Please select enquiry type";
-    }
-
-    setErrors({
-      fullName: nameErr,
-      phone: phoneErr,
-      email: emailErr,
-      state: stateErr,
-      ...extraErr,
-    });
-
-    if (nameErr || phoneErr || emailErr || stateErr || Object.keys(extraErr).length) return;
-
-    // Start submission
-    setIsSubmitting(true);
-
-    try {
-      // Map form data to backend format
-      const apiPayload = mapToBackendFormat(formData);
-
-      console.log("Sending payload:", apiPayload); // For debugging
-console.log(process.env.NEXT_PUBLIC_API_URL);
-   
-const response = await fetch("http://localhost:8080/api/v1/enquiries", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(apiPayload),
+  let extraErr = {};
+  if (formData.enquiryFor === "Courses / Internship") {
+    if (!formData.course) extraErr.course = "Please select a course or internship";
+    if (formData.course === "Other" && !formData.customCourse) extraErr.customCourse = "Please enter the course name";
+  } else if (formData.enquiryFor === "Jobs") {
+    if (!formData.preferredRole) extraErr.preferredRole = "Please enter your preferred role";
+  } else {
+    extraErr.enquiryFor = "Please select enquiry type";
   }
-);
 
-      const result = await response.json();
+  setErrors({
+    fullName: nameErr,
+    phone: phoneErr,
+    email: emailErr,
+    state: stateErr,
+    ...extraErr,
+  });
 
-      if (response.ok && result.success) {
-        // Reset form
-        setFormData({
-          fullName: "",
-          phone: "",
-          email: "",
-          enquiryFor: "",
-          location: "",
-          state: "",
-          experience: "",
-          branch: "",
-          course: "",
-          customCourse: "",
-          preferredRole: "",
-          currentEmployer: "",
-          countryCode: "+91",
-        });
+  if (nameErr || phoneErr || emailErr || stateErr || Object.keys(extraErr).length) return;
 
-        // Close form popup and show success popup
-        setSubmitted(true);
-        setShowSuccessPopup(true);
-        setIsSubmitting(false);
-      } else {
-        throw new Error(result.message || "Submission failed");
-      }
-    } catch (error) {
-      console.error("Form submission error:", error);
-      alert("Failed to submit form. Please try again.");
-      setIsSubmitting(false);
+  // --- SUBMIT ---
+  setIsSubmitting(true);
+
+  try {
+    const apiPayload = mapToBackendFormat(formData);
+
+   const res = await fetch("/api/v1/enquiries", {
+
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(apiPayload),
+});
+
+
+    const result = await res.json(); // parse JSON here
+
+    if (res.ok && result.success) {
+      // Reset form
+      setFormData({
+        fullName: "",
+        phone: "",
+        email: "",
+        enquiryFor: "",
+        location: "",
+        state: "",
+        experience: "",
+        branch: "",
+        course: "",
+        customCourse: "",
+        preferredRole: "",
+        currentEmployer: "",
+        countryCode: "+91",
+      });
+      setSubmitted(true);
+      setShowSuccessPopup(true);
+    } else {
+      throw new Error(result.message || "Submission failed");
     }
-  };
+  } catch (err) {
+    console.error("Form submission error:", err);
+    alert("Failed to submit form. Please try again.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
 
   useEffect(() => {
     if (isOpen) setShowImage(true);
