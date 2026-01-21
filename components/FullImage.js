@@ -6,14 +6,14 @@ export default function FullImage() {
 
       {/* Desktop Image */}
       <img
-        src="/Home page images/Home Page - 3840 x 2160(updated).jpg"
+        src="/Home page images/Home Page - 3840 x 2160.jpg"
         alt="Desktop View"
         className="hidden sm:block w-full h-full object-cover"
       />
 
       {/* Mobile Image */}
       <img
-        src="/Home page images/Home Page - 1080 x 920(updated).jpg"
+        src="/Home page images/Home Page - 1080 x 920.jpg"
         alt="Mobile View"
         className="block sm:hidden w-full h-full object-cover"
         loading="eager"
