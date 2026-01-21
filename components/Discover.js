@@ -1,0 +1,22 @@
+export default function Discover() {
+  return (
+    <section className="py-10 sm:py-16 bg-blue-700 text-center px-4">
+      <h2 className="text-2xl sm:text-2xl md:text-3xl font-bold leading-snug text-white max-w-3xl mx-auto">
+        <strong>Discover the right training to boost your career</strong>
+      </h2>
+
+      <a
+        href="https://wa.me/7708938866"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <button
+          className="mt-6 sm:mt-8 text-white px-5 sm:px-8 py-2 sm:py-3 rounded-lg font-semibold transition"
+          style={{ backgroundColor: "#ffcb0e" }}
+        >
+          Get Free Career Guidance
+        </button>
+      </a>
+    </section>
+  );
+}

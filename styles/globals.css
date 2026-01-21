@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: sans-serif;
+}
+html {
+  scroll-behavior: smooth;
+}
+.translate-y-32 {
+  transform: translateY(8rem);
+}
