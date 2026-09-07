@@ -2,12 +2,14 @@ import React, { useState, useEffect } from "react";
 import Footer from "../components/Footer";
 import Select from "react-select";
 import SuccessToast from "../components/SuccessToast";
+import Head from "next/head";
+import ISO6391 from "iso-639-1";
 
 const JOBS_PER_PAGE = 12;
 
 const employmentTypeBadge = (type) => {
   if (type === "FULL_TIME") return "bg-green-500 text-white";
-    if (type === "PART_TIME") return "bg-green-500 text-white";
+  if (type === "PART_TIME") return "bg-green-500 text-white";
   if (type === "CONTRACT") return "bg-purple-500 text-white";
   if (type === "INTERNSHIP") return "bg-orange-500 text-white";
   return "bg-blue-500 text-white";
@@ -81,9 +83,6 @@ const JobPortal = () => {
   const [scrolled, setScrolled] = useState(false);
   const [showHeader, setShowHeader] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
-
-  const hireStudentsLink = "https://wa.me/7305014818";
-  const contactLink = "https://wa.me/7708938866";
 
   useEffect(() => { fetchJobs(); }, []);
 
@@ -371,20 +370,19 @@ const JobPortal = () => {
                       </div>
                       <div className="flex items-center gap-2 text-red-400 text-sm font-semibold">
                         <IconCalendar />
-                        <span className="truncate">Deadline: {formatDate(job.applicationDeadline)}</span>
+                        <span className="truncate">Last Date to Apply: {formatDate(job.applicationDeadline)}</span>
                       </div>
                     </div>
 
                     {/* CTA */}
                     <div className="pt-2 border-t border-gray-100">
-                      <span className="text-blue-600 text-xs font-semibold hover:text-blue-800 transition">
-                        View Details →
+                      <span className="inline-block bg-blue-600 text-white text-xs font-semibold px-4 py-2 rounded-md hover:bg-blue-700 transition cursor-pointer">
+                        View Job Description
                       </span>
                     </div>
                   </div>
                 ))}
               </div>
-
               {/* ── Pagination ── */}
               {totalPages > 1 && (
                 <div className="flex justify-center items-center gap-1.5 mt-10 flex-wrap">
@@ -560,10 +558,8 @@ const JobPortal = () => {
   );
 };
 
-export default JobPortal;
-
 /* ─────────────────────────────────────────────
-   ApplicationForm — completely unchanged
+   ApplicationForm Component
 ───────────────────────────────────────────── */
 const ApplicationForm = ({ jobId, jobTitle, onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -631,7 +627,6 @@ const ApplicationForm = ({ jobId, jobTitle, onSuccess }) => {
     { label: "YouTube", value: "YOUTUBE" },
   ];
 
-  const ISO6391 = require('iso-639-1');
   const languageOptions = ISO6391.getAllNames().map(name => ({
     label: name,
     value: name.toUpperCase()
@@ -938,3 +933,35 @@ const ApplicationForm = ({ jobId, jobTitle, onSuccess }) => {
     </div>
   );
 };
+
+/* ─────────────────────────────────────────────
+   Main Page Export Component
+───────────────────────────────────────────── */
+export default function CareerschoolJobs() {
+  return (
+    <>
+      <Head>
+        <title>Apply for Top IT & Non-IT Jobs in India | Careerschool Jobs</title>
+        <meta
+          name="description"
+          key="description"
+          content="Looking for Full Time, Part Time, Internships and Contract based roles in IT, Tech, Finance, HR, Marketing, Non-IT? Designed for freshers, job seekers, career gaps, experienced and more."
+        />
+        <meta name="robots" content="index, follow" />
+        <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1" />
+        <link rel="canonical" href="https://careerschool.co.in/careerschool-jobs" />
+        <meta property="og:title" content="Apply for Top IT & Non-IT Jobs in India | Careerschool Jobs" />
+        <meta property="og:description" content="Looking for Full Time, Part Time, Internships and Contract based roles in IT, Tech, Finance, HR, Marketing, Non-IT? Designed for freshers, job seekers, career gaps, experienced and more." />
+        <meta property="og:url" content="https://careerschool.co.in/careerschool-jobs" />
+        <meta property="og:site_name" content="Careerschool HR & IT Solutions" />
+        <meta property="og:image" content="https://careerschool.co.in/og/careerschool-it-non-it-jobs-india.webp" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:locale" content="en_IN" />
+        <meta property="og:type" content="website" />
+      </Head>
+
+      <JobPortal />
+    </>
+  );
+}
