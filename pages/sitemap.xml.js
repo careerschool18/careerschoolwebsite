@@ -17,7 +17,7 @@ ${urls
   <url>
     <loc>${baseUrl}${url}</loc>
     <lastmod>${new Date().toISOString()}</lastmod>
-    <changefreq>weekly</changefreq>
+    <changefreq>${url === "/careerschool-jobs" ? "daily" : "weekly"}</changefreq>
     <priority>${url === "" ? "1.0" : "0.9"}</priority>
   </url>`,
   )

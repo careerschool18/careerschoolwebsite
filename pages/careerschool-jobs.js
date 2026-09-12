@@ -7,7 +7,7 @@ const JOBS_PER_PAGE = 12;
 
 const employmentTypeBadge = (type) => {
   if (type === "FULL_TIME") return "bg-green-500 text-white";
-    if (type === "PART_TIME") return "bg-green-500 text-white";
+  if (type === "PART_TIME") return "bg-yellow-500 text-white";
   if (type === "CONTRACT") return "bg-purple-500 text-white";
   if (type === "INTERNSHIP") return "bg-orange-500 text-white";
   return "bg-blue-500 text-white";

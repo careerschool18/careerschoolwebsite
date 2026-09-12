@@ -18,7 +18,7 @@ const targetAudienceInfo = (value) => {
   if (text.toLowerCase().includes("career")) {
     return { text, cls: "bg-blue-100 text-blue-900" };
   }
-  return { text, cls: "bg-blue-100 text-blue-900" };
+  return { text, cls: "bg-gray-100 text-gray-600" };
 };
 
 const AllJobs = () => {
