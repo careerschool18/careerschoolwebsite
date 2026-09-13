@@ -1,8 +1,4 @@
 User-agent: *
 Allow: /
 
-Disallow: /hr-portal
-Disallow: /applications
-Disallow: /all-jobs
-
 Sitemap: https://careerschool.co.in/sitemap.xml

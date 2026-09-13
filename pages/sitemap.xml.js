@@ -7,7 +7,6 @@ export async function getServerSideProps({ res }) {
     "/online-assessment",
     "/training-enquiry-form",
     "/nellore-python",
-    "/careerschool-jobs"
   ];
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
