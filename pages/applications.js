@@ -117,7 +117,7 @@ export default function Applications() {
 
   /* Export the currently visible (filtered) rows to CSV */
   const exportCsv = () => {
-    const headers = ["Job Title", "Full Name", "Student I'd", "Phone", "Alt. Phone", "Email", "Location", "Language", "Education", "College", "Stream", "YOP", "Arrears", "Experience", "Source"];
+    const headers = ["Job Title", "Full Name", "Student ID", "Phone", "Alt. Phone", "Email", "Location", "Language", "Education", "College", "Stream", "YOP", "Arrears", "Experience", "Source"];
     const keys = ["jobTitle", "fullName", "studentId", "phone", "alternatePhone", "email", "location", "language", "highestEducation", "collegeName", "stream", "yearOfPassing", "arrears", "experience", "source"];
     const escape = (v) => {
       const s = v === null || v === undefined ? "" : String(v);
@@ -222,7 +222,7 @@ export default function Applications() {
                 <tr>
                   <th className="px-4 py-4 whitespace-nowrap">Job Title</th>
                   <th className="px-4 py-4 whitespace-nowrap">Full Name</th>
-                  <th className="px-4 py-4 whitespace-nowrap">Student I'd</th>
+                  <th className="px-4 py-4 whitespace-nowrap">Student ID</th>
                   <th className="px-4 py-4 whitespace-nowrap">Phone</th>
                   <th className="px-4 py-4 whitespace-nowrap">Alt. Phone</th>
                   <th className="px-4 py-4 whitespace-nowrap">Email</th>

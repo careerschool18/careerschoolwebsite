@@ -4,7 +4,13 @@ export default function Document() {
   return (
     <Html lang="en">
       <Head>
+        <meta charSet="UTF-8" />
         <meta name="language" content="English" />
+        <meta name="robots" content="index, follow" />
+        <meta
+          name="description"
+          content="India’s #1 Training & Placement Institute for Python, Full Stack Development, Java, Web Development, Digital Marketing, Data Analytics, HR and more. Learn, Intern & Get Placed with Careerschool!"
+        />
         <meta
           name="keywords"
           content="careerschool, python training, full stack training, data analytics training, digital marketing training"
