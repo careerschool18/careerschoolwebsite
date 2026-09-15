@@ -154,26 +154,49 @@ export default function Footer() {
           </h3>
           <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm md:text-base xl:text-lg">
             {[
-              "Python + AI",
-              "HR Analytics",
-              "Data Analytics",
-              "Digital Marketing",
-              "Python Fullstack",
-              "Java Fullstack",
-              "Business Analytics",
-              "Accounts & Finance",
-            ].map((course, i) => (
-              <li key={i}>
-                <a
-                  href={`https://wa.me/918939592323?text=Hello%2C%20I%20want%20to%20know%20more%20about%20the%20%22${encodeURIComponent(course)}%22%20course.%20Please%20share%20the%20details%20including%20curriculum%2C%20duration%2C%20fees%2C%20and%20placement%20assistance.`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-[#004AAD] transition duration-300 block"
-                >
-                  {course}
-                </a>
-              </li>
-            ))}
+              {
+                title: "Python Full-Stack + AI",
+                link: "https://careerschool.co.in/nellore-python",
+                external: true,
+              },
+              {
+                title: "Data Analytics + AI",
+                link: "https://careerschool.co.in/data-analytics-ai-course",
+                external: true,
+              },
+              {
+                title: "HR Analytics",
+              },
+              {
+                title: "Digital Marketing",
+              },
+              {
+                title: "Java Full-Stack",
+              },
+              {
+                title: "Business Analytics",
+              },
+              {
+                title: "Accounts & Finance",
+              },
+            ].map((course, i) => {
+              const whatsappLink = `https://wa.me/918939592323?text=Hello%2C%20I%20want%20to%20know%20more%20about%20the%20%22${encodeURIComponent(
+                course.title,
+              )}%22%20course.%20Please%20share%20the%20details%20including%20curriculum%2C%20duration%2C%20fees%2C%20and%20placement%20assistance.`;
+
+              return (
+                <li key={i}>
+                  <a
+                    href={course.external ? course.link : whatsappLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-[#004AAD] transition duration-300 block"
+                  >
+                    {course.title}
+                  </a>
+                </li>
+              );
+            })}
           </ul>
         </div>
 
@@ -282,16 +305,6 @@ export default function Footer() {
                 className="hover:text-[#004AAD] transition duration-300"
               >
                 Speak with placement Team
-              </a>
-            </li>
-            <li>
-              <a
-                href="https://wa.me/918939592323"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-[#004AAD] transition duration-300"
-              >
-                Non-IT Jobs
               </a>
             </li>
           </ul>
