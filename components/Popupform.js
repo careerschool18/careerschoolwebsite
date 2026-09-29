@@ -230,12 +230,12 @@ export default function CourseEnquiryPopup({
     // Map training mode
     const trainingMode = formData.branch === "Online" ? "ONLINE" : "OFFLINE";
 
-    // Determine course name
+    // Determine course name. Only course/internship enquiries carry a course value;
+    // job enquiries have no course, so the preferred role must NOT be stored here
+    // (it is sent separately in preferredRole and shown in its own column).
     let courseName = "";
     if (formData.enquiryFor === "Courses / Internship") {
       courseName = formData.course === "Other" ? formData.customCourse : formData.course;
-    } else if (formData.enquiryFor === "Jobs") {
-      courseName = formData.preferredRole; // For jobs, use preferred role as course name
     }
 
     return {
@@ -245,6 +245,10 @@ export default function CourseEnquiryPopup({
       email: formData.email,
       enquiryType: enquiryType,
       courseName: courseName,
+      // These two are collected by the popup (Jobs enquiries) and were previously dropped,
+      // which is why they never reached the course enquiry report. They are sent as-is now.
+      preferredRole: formData.preferredRole,
+      currentEmployer: formData.currentEmployer,
       city: formData.location,
       state: formData.state,
       totalExperience: totalExperience,

@@ -8,11 +8,11 @@ import ISO6391 from "iso-639-1";
 const JOBS_PER_PAGE = 12;
 
 const employmentTypeBadge = (type) => {
-  if (type === "FULL_TIME") return "bg-green-500 text-white";
-  if (type === "PART_TIME") return "bg-yellow-500 text-white";
-  if (type === "CONTRACT") return "bg-purple-500 text-white";
-  if (type === "INTERNSHIP") return "bg-orange-500 text-white";
-  return "bg-blue-500 text-white";
+  if (type === "FULL_TIME") return "bg-green-600 text-white";
+  if (type === "PART_TIME") return "bg-green-600 text-white";
+  if (type === "CONTRACT") return "bg-green-600 text-white";
+  if (type === "INTERNSHIP") return "bg-green-600 text-white";
+  return "bg-green-600 text-white";
 };
 
 const formatEmploymentType = (type) => {
@@ -32,13 +32,16 @@ const formatDate = (dateString) => {
 };
 
 /* A job is shown to Career School students when it targets everyone
-   ("Open For All" / legacy jobs with no value) or Career School students directly. */
+   ("Open For All" / legacy jobs with no value) or Career School students directly.
+   "careerschool student" substring matches both the current option
+   ("Only For Careerschool Student's") and the legacy value
+   ("For Careerschool Student's & Alumni") still stored on old jobs. */
 const isCareerSchoolJob = (job) => {
   const audience = (job.targetAudience || "Open For All").toLowerCase();
 
   return (
     audience === "open for all" ||
-    audience === "for careerschool student's & alumni"
+    audience.includes("careerschool student")
   );
 };
 
@@ -341,17 +344,30 @@ const JobPortal = () => {
                           {job.jobTitle}
                         </h4>
                       </div>
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <span className={`inline-flex items-center whitespace-nowrap shrink-0 px-2.5 py-1 rounded-full text-[11px] font-semibold leading-none tracking-wide uppercase ${employmentTypeBadge(job.employmentType)}`}>
-                          {formatEmploymentType(job.employmentType)}
-                        </span>
-                        <span
-                          title={job.targetAudience || "Open For All"}
-                          className="inline-flex items-center min-w-0 max-w-full truncate px-2.5 py-1 rounded-full text-[11px] font-semibold leading-none bg-blue-600 text-white"
-                        >
-                          {job.targetAudience || "Open For All"}
-                        </span>
-                      </div>
+              <div className="flex items-center gap-1.5 min-w-0">
+                {/* Employment Type Badge */}
+                <span
+                  className={`inline-flex items-center whitespace-nowrap shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold leading-none tracking-wide uppercase ${employmentTypeBadge(
+                    job.employmentType
+                  )}`}
+                >
+                  {formatEmploymentType(job.employmentType)}
+                </span>
+
+                {/* Target Audience Badge */}
+                <span
+                  title={job.targetAudience || "Open For All"}
+                  className={`inline-flex items-center min-w-0 max-w-full truncate px-2 py-0.5 rounded-full text-[10px] font-semibold leading-none text-white ${
+                    (job.targetAudience || "Open For All")
+                      .toLowerCase()
+                      .includes("careerschool")
+                      ? "bg-blue-600"
+                      : "bg-orange-600"
+                  }`}
+                >
+                  {job.targetAudience || "Open For All"}
+                </span>
+              </div>
                     </div>
 
                     {/* Meta info */}

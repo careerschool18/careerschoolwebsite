@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 
+/* Dropdown choices offered by the two inline HR tracking columns */
+const STATUS_OPTIONS = ["Scheduled", "Rejected", "RNR", "Not Interested", "Moved to L&D"];
+const HR_NAME_OPTIONS = ["Revathi", "Roshini", "Bharani", "Vignesh J", "Pooja", "Beebjan"];
+
 /* Every filterable column of the applications table */
 const emptyFilters = {
   jobTitle: "",
@@ -18,6 +22,20 @@ const emptyFilters = {
   arrears: "",
   experience: "",
   source: "",
+  appliedAt: "",
+  status: "",
+  hrName: "",
+  remarks: "",
+};
+
+/* Server timestamp (ISO) -> "28 Sept 2026, 03:12 PM". Blank for rows saved before this column existed. */
+const formatAppliedAt = (value) => {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  const datePart = date.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+  const timePart = date.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true });
+  return `${datePart}, ${timePart}`;
 };
 
 /* Field-by-field controls shown inside the right-side filter drawer */
@@ -37,6 +55,10 @@ const filterFields = [
   { key: "arrears", label: "Arrears Status", type: "select", options: ["No", "Yes"] },
   { key: "experience", label: "Experience Level", type: "select", options: ["fresher", "less than 1 year", "1-5 years", "5-10 years", "more than 10 years"] },
   { key: "source", label: "Source", type: "select", options: ["WHATSAPP", "GOOGLE", "REFERRAL", "LINKEDIN", "FACEBOOK", "INSTAGRAM", "YOUTUBE"] },
+  { key: "appliedAt", label: "Applied On", type: "text", placeholder: "e.g. 28 Sept 2026" },
+  { key: "status", label: "Status", type: "select", options: STATUS_OPTIONS },
+  { key: "hrName", label: "HR-Name", type: "select", options: HR_NAME_OPTIONS },
+  { key: "remarks", label: "Remarks", type: "text", placeholder: "e.g. Shortlisted / Called" },
 ];
 
 export default function Applications() {
@@ -50,6 +72,18 @@ export default function Applications() {
   const [showFilter, setShowFilter] = useState(false);
   const [draftFilters, setDraftFilters] = useState(emptyFilters); // edited inside the drawer
   const [activeFilters, setActiveFilters] = useState(emptyFilters); // applied to the table
+
+  // Remarks inline-edit state:
+  // - editingId: which row's input is actively being edited (null when viewing fixed text)
+  // - remarksDraft: string value currently typed for that row
+  // - remarksStatus: { [id]: "saving" | "saved" | "error" }
+  const [editingId, setEditingId] = useState(null);
+  const [remarksDraft, setRemarksDraft] = useState({});
+  const [remarksStatus, setRemarksStatus] = useState({});
+
+  // Status / HR-Name dropdown save feedback, keyed as `${applicationId}:${field}`:
+  // "saving" | "saved" | "error"
+  const [trackingStatus, setTrackingStatus] = useState({});
 
   useEffect(() => {
     const authStatus = sessionStorage.getItem("isHRAuthenticated");
@@ -94,6 +128,129 @@ export default function Applications() {
     setActiveFilters(emptyFilters);
   };
 
+  const startEditingRemarks = (app) => {
+    setRemarksDraft((prev) => ({ ...prev, [app.id]: app.remarks || "" }));
+    setEditingId(app.id);
+  };
+
+  const cancelEditingRemarks = (appId) => {
+    setRemarksDraft((prev) => {
+      const copy = { ...prev };
+      delete copy[appId];
+      return copy;
+    });
+    setEditingId(null);
+  };
+
+  /* Saves the remark typed against one application */
+  const saveRemarks = async (app) => {
+    const draft = remarksDraft[app.id];
+    // If not modified or undefined, close edit mode without API call
+    if (draft === undefined) {
+      setEditingId(null);
+      return;
+    }
+    const nextValue = draft.trim();
+    const currentValue = (app.remarks || "").trim();
+    if (nextValue === currentValue) {
+      cancelEditingRemarks(app.id);
+      return;
+    }
+    setRemarksStatus((prev) => ({ ...prev, [app.id]: "saving" }));
+    try {
+      const response = await fetch(`/api/applications/${app.id}/remarks`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ remarks: nextValue }),
+      });
+      const data = await response.json();
+      if (response.ok && data.success) {
+        setApplications((prev) =>
+          prev.map((item) => (item.id === app.id ? { ...item, remarks: data.remarks || "" } : item))
+        );
+        cancelEditingRemarks(app.id);
+        setRemarksStatus((prev) => ({ ...prev, [app.id]: "saved" }));
+        setTimeout(() => setRemarksStatus((prev) => ({ ...prev, [app.id]: "" })), 2500);
+      } else {
+        setRemarksStatus((prev) => ({ ...prev, [app.id]: "error" }));
+      }
+    } catch (error) {
+      console.error("Error saving remarks:", error);
+      setRemarksStatus((prev) => ({ ...prev, [app.id]: "error" }));
+    }
+  };
+
+  /*
+   * Saves the Status / HR-Name dropdown picked for one application.*/
+  const saveTracking = async (app, field, value) => {
+    const key = `${app.id}:${field}`;
+    const previous = app[field] || "";
+    if (value === previous) return;
+
+    setApplications((prev) =>
+      prev.map((item) => (item.id === app.id ? { ...item, [field]: value } : item))
+    );
+    setTrackingStatus((prev) => ({ ...prev, [key]: "saving" }));
+
+    try {
+      const response = await fetch(`/api/applications/${app.id}/tracking`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ [field]: value }),
+      });
+      const data = await response.json();
+      if (response.ok && data.success) {
+        setApplications((prev) =>
+          prev.map((item) =>
+            item.id === app.id ? { ...item, [field]: data[field] || "" } : item
+          )
+        );
+        setTrackingStatus((prev) => ({ ...prev, [key]: "saved" }));
+        setTimeout(() => setTrackingStatus((prev) => ({ ...prev, [key]: "" })), 2000);
+      } else {
+        setApplications((prev) =>
+          prev.map((item) => (item.id === app.id ? { ...item, [field]: previous } : item))
+        );
+        setTrackingStatus((prev) => ({ ...prev, [key]: "error" }));
+      }
+    } catch (error) {
+      console.error("Error saving tracking field:", error);
+      setApplications((prev) =>
+        prev.map((item) => (item.id === app.id ? { ...item, [field]: previous } : item))
+      );
+      setTrackingStatus((prev) => ({ ...prev, [key]: "error" }));
+    }
+  };
+
+  /* Inline dropdown cell used by the Status and HR-Name columns */
+  const renderTrackingSelect = (app, field, options) => {
+    const key = `${app.id}:${field}`;
+    const value = app[field] || "";
+    const state = trackingStatus[key];
+
+    return (
+      <div className="flex flex-col gap-0.5">
+        <select
+          value={value}
+          onChange={(e) => saveTracking(app, field, e.target.value)}
+          className={`w-40 border rounded-lg px-2.5 py-1.5 text-sm outline-none transition ${
+            value
+              ? "border-green-300 bg-green-50 text-green-900 font-medium"
+              : "border-gray-300 bg-white text-gray-500"
+          }`}
+        >
+          <option value="">— Select —</option>
+          {options.map((opt) => (
+            <option key={opt} value={opt}>{opt}</option>
+          ))}
+        </select>
+        {state === "saving" && <span className="text-[11px] text-gray-400">Saving...</span>}
+        {state === "saved" && <span className="text-[11px] text-green-600 font-semibold">Saved</span>}
+        {state === "error" && <span className="text-[11px] text-red-500 font-semibold">Save failed - try again</span>}
+      </div>
+    );
+  };
+
   const activeFilterCount = Object.keys(activeFilters).length;
 
   const filteredApplications = applications.filter((app) => {
@@ -104,28 +261,36 @@ export default function Applications() {
         app.jobTitle, app.fullName, app.studentId, app.phone, app.alternatePhone,
         app.email, app.location, app.language, app.highestEducation,
         app.collegeName, app.stream, app.yearOfPassing, app.arrears,
-        app.experience, app.source,
+        app.experience, app.source, app.appliedAt, formatAppliedAt(app.appliedAt),
+        app.status, app.hrName, app.remarks,
       ].join(" ").toLowerCase();
       if (!haystack.includes(term)) return false;
     }
     // Field-by-field drawer filters — combined with (not cleared by) the search bar
     for (const [field, value] of Object.entries(activeFilters)) {
-      if (!(app[field] || "").toString().toLowerCase().includes(value.toLowerCase())) return false;
+      const needle = value.toLowerCase();
+      // "Applied On" can be matched either by the raw timestamp or by the displayed date/time
+      const candidates = field === "appliedAt"
+        ? [formatAppliedAt(app.appliedAt), app.appliedAt || ""]
+        : [app[field] === null || app[field] === undefined ? "" : app[field]];
+      if (!candidates.some((candidate) => candidate.toString().toLowerCase().includes(needle))) return false;
     }
     return true;
   });
 
   /* Export the currently visible (filtered) rows to CSV */
   const exportCsv = () => {
-    const headers = ["Job Title", "Full Name", "Student ID", "Phone", "Alt. Phone", "Email", "Location", "Language", "Education", "College", "Stream", "YOP", "Arrears", "Experience", "Source"];
-    const keys = ["jobTitle", "fullName", "studentId", "phone", "alternatePhone", "email", "location", "language", "highestEducation", "collegeName", "stream", "yearOfPassing", "arrears", "experience", "source"];
+    const headers = ["Job Title", "Applied On (Date & Time)", "Full Name", "Student I'd", "Phone", "Alt. Phone", "Email", "Location", "Language", "Education", "College", "Stream", "YOP", "Arrears", "Experience", "Source", "Status", "HR-Name", "Remarks"];
+    const keys = ["jobTitle", "appliedAt", "fullName", "studentId", "phone", "alternatePhone", "email", "location", "language", "highestEducation", "collegeName", "stream", "yearOfPassing", "arrears", "experience", "source", "status", "hrName", "remarks"];
     const escape = (v) => {
       const s = v === null || v === undefined ? "" : String(v);
       return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
     };
     const lines = [
       headers.map(escape).join(","),
-      ...filteredApplications.map((app) => keys.map((k) => escape(app[k])).join(",")),
+      ...filteredApplications.map((app) =>
+        keys.map((k) => escape(k === "appliedAt" ? formatAppliedAt(app.appliedAt) : app[k])).join(",")
+      ),
     ];
     const blob = new Blob(["\uFEFF" + lines.join("\r\n")], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -221,8 +386,9 @@ export default function Applications() {
               <thead className="bg-green-600 text-white">
                 <tr>
                   <th className="px-4 py-4 whitespace-nowrap">Job Title</th>
+                  <th className="px-4 py-4 whitespace-nowrap">Applied On (Date &amp; Time)</th>
                   <th className="px-4 py-4 whitespace-nowrap">Full Name</th>
-                  <th className="px-4 py-4 whitespace-nowrap">Student ID</th>
+                  <th className="px-4 py-4 whitespace-nowrap">Student I'd</th>
                   <th className="px-4 py-4 whitespace-nowrap">Phone</th>
                   <th className="px-4 py-4 whitespace-nowrap">Alt. Phone</th>
                   <th className="px-4 py-4 whitespace-nowrap">Email</th>
@@ -235,12 +401,16 @@ export default function Applications() {
                   <th className="px-4 py-4 whitespace-nowrap">Arrears</th>
                   <th className="px-4 py-4 whitespace-nowrap">Experience</th>
                   <th className="px-4 py-4 whitespace-nowrap">Source</th>
+                  <th className="px-4 py-4 whitespace-nowrap">Status</th>
+                  <th className="px-4 py-4 whitespace-nowrap">HR-Name</th>
+                  <th className="px-4 py-4 whitespace-nowrap">Remarks</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredApplications.map((app, index) => (
                   <tr key={app.id} className={`border-b ${index % 2 === 0 ? "bg-gray-50" : "bg-white"} hover:bg-green-50 transition`}>
                     <td className="px-4 py-4 whitespace-nowrap font-semibold max-w-[220px] truncate" title={app.jobTitle}>{app.jobTitle}</td>
+                    <td className="px-4 py-4 whitespace-nowrap">{formatAppliedAt(app.appliedAt)}</td>
                     <td className="px-4 py-4 whitespace-nowrap">{app.fullName}</td>
                     <td className="px-4 py-4 whitespace-nowrap">{app.studentId || "—"}</td>
                     <td className="px-4 py-4 whitespace-nowrap">{app.phone}</td>
@@ -255,6 +425,82 @@ export default function Applications() {
                     <td className="px-4 py-4 whitespace-nowrap">{app.arrears || "—"}</td>
                     <td className="px-4 py-4 whitespace-nowrap">{app.experience}</td>
                     <td className="px-4 py-4 whitespace-nowrap">{app.source}</td>
+                    <td className="px-4 py-3 align-top">
+                      {renderTrackingSelect(app, "status", STATUS_OPTIONS)}
+                    </td>
+                    <td className="px-4 py-3 align-top">
+                      {renderTrackingSelect(app, "hrName", HR_NAME_OPTIONS)}
+                    </td>
+                    <td className="px-4 py-3 min-w-[240px]">
+                      {editingId === app.id ? (
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <input
+                              type="text"
+                              autoFocus
+                              value={remarksDraft[app.id] !== undefined ? remarksDraft[app.id] : app.remarks || ""}
+                              onChange={(e) => setRemarksDraft((prev) => ({ ...prev, [app.id]: e.target.value }))}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  saveRemarks(app);
+                                } else if (e.key === "Escape") {
+                                  e.preventDefault();
+                                  cancelEditingRemarks(app.id);
+                                }
+                              }}
+                              placeholder="Type remark..."
+                              className="w-48 bg-white border border-green-500 rounded-lg px-2.5 py-1 text-sm text-gray-800 placeholder-gray-400 outline-none shadow-sm"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => saveRemarks(app)}
+                              title="Save remark (Enter)"
+                              className="px-2 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-lg shadow-sm transition"
+                            >
+                              Save
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => cancelEditingRemarks(app.id)}
+                              title="Cancel (Esc)"
+                              className="px-2 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-semibold rounded-lg transition"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                          {remarksStatus[app.id] === "saving" && (
+                            <span className="block text-[11px] text-gray-400 mt-1">Saving...</span>
+                          )}
+                          {remarksStatus[app.id] === "error" && (
+                            <span className="block text-[11px] text-red-500 font-semibold mt-1">Save failed - try again</span>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="group flex items-center justify-between gap-2 py-1">
+                          <span
+                            className={`text-sm ${app.remarks ? "text-gray-800 font-medium" : "text-gray-400 italic"}`}
+                            title={app.remarks || "No remark added"}
+                          >
+                            {app.remarks || "—"}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => startEditingRemarks(app)}
+                            title="Edit remark"
+                            className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 hover:bg-green-100 text-gray-600 hover:text-green-700 text-xs font-medium rounded-lg border border-gray-200 hover:border-green-300 transition shrink-0"
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                            <span>Edit</span>
+                          </button>
+                        </div>
+                      )}
+                      {remarksStatus[app.id] === "saved" && editingId !== app.id && (
+                        <span className="block text-[11px] text-green-600 font-semibold mt-0.5">Saved</span>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
