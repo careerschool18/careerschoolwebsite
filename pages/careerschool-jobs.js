@@ -595,7 +595,7 @@ const JobPortal = () => {
                   {selectedJob.jobTitle}
                 </h2>
                 <span
-                  className={`inline-block mt-2 px-3 py-1 rounded-full text-[11px] font-semibold leading-none uppercase tracking-wide whitespace-nowrap ${employmentTypeBadge(selectedJob.employmentType)}`}
+                  className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${EMPLOYMENT_TYPE_BADGE_STYLE}`}
                 >
                   {formatEmploymentType(selectedJob.employmentType)}
                 </span>

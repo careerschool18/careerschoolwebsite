@@ -408,15 +408,48 @@ export default function Applications() {
     }
   };
 
-  /* Open course enquiries export URL with token query param */
-  const exportCourseEnquiries = () => {
+  /* Download course enquiries export via Authorization header as a blob */
+  const exportCourseEnquiries = async () => {
     const token = sessionStorage.getItem("hrToken");
     if (!token) {
       handleUnauthorized();
       return;
     }
-    const exportUrl = `https://career-school.co.in/api/v1/course-enquiries?token=${encodeURIComponent(token)}`;
-    window.open(exportUrl, "_blank", "noopener,noreferrer");
+
+    try {
+      const response = await fetch(
+        "https://career-school.co.in/api/v1/course-enquiries",
+        {
+          headers: {
+            ...getAuthHeaders(),
+          },
+        },
+      );
+
+      if (response.status === 401) {
+        handleUnauthorized();
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to export course enquiries: ${response.status}`,
+        );
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `course_enquiries_${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error exporting course enquiries:", error);
+      alert("Failed to export course enquiries. Please try again.");
+    }
   };
 
   /* Inline dropdown cell used by the Status and HR-Name columns */
