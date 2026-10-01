@@ -3,7 +3,21 @@ import Select from "react-select";
 import { qualifications } from "../constants/qualifications";
 import { indianCities } from "../constants/locations";
 
-const JobForm = ({ editJobId, initialData, onSubmitSuccess, onCancelEdit, onClose, statusNode }) => {
+const normalizeTargetAudience = (val) => {
+  if (!val) return "";
+  return /careerschool/i.test(val)
+    ? "FOR CAREERSCHOOL STUDENT'S"
+    : "OPEN FOR ALL";
+};
+
+const JobForm = ({
+  editJobId,
+  initialData,
+  onSubmitSuccess,
+  onCancelEdit,
+  onClose,
+  statusNode,
+}) => {
   const [formData, setFormData] = useState({
     jobTitle: "",
     domain: "",
@@ -15,12 +29,15 @@ const JobForm = ({ editJobId, initialData, onSubmitSuccess, onCancelEdit, onClos
     skills: "",
     salaryRange: "",
     experience: "",
-    applicationDeadline: ""
+    applicationDeadline: "",
   });
 
   useEffect(() => {
     if (initialData) {
-      setFormData(initialData);
+      setFormData({
+        ...initialData,
+        targetAudience: normalizeTargetAudience(initialData.targetAudience),
+      });
     } else {
       setFormData({
         jobTitle: "",
@@ -33,7 +50,7 @@ const JobForm = ({ editJobId, initialData, onSubmitSuccess, onCancelEdit, onClos
         skills: "",
         salaryRange: "",
         experience: "",
-        applicationDeadline: ""
+        applicationDeadline: "",
       });
     }
   }, [initialData, editJobId]);
@@ -41,7 +58,7 @@ const JobForm = ({ editJobId, initialData, onSubmitSuccess, onCancelEdit, onClos
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -51,7 +68,7 @@ const JobForm = ({ editJobId, initialData, onSubmitSuccess, onCancelEdit, onClos
       const payload = {
         ...formData,
         qualification: formData.qualification.map((q) => q.value).join(", "),
-        location: formData.location.map((loc) => loc.value).join(", ")
+        location: formData.location.map((loc) => loc.value).join(", "),
       };
 
       const response = await fetch(
@@ -61,12 +78,14 @@ const JobForm = ({ editJobId, initialData, onSubmitSuccess, onCancelEdit, onClos
         {
           method: editJobId ? "PUT" : "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        }
+          body: JSON.stringify(payload),
+        },
       );
 
       if (response.ok) {
-        onSubmitSuccess(editJobId ? "Job updated successfully" : "Job posted successfully");
+        onSubmitSuccess(
+          editJobId ? "Job updated successfully" : "Job posted successfully",
+        );
       } else {
         alert("Failed to save job");
       }
@@ -89,7 +108,11 @@ const JobForm = ({ editJobId, initialData, onSubmitSuccess, onCancelEdit, onClos
         {/* Right: cancel + close */}
         <div className="flex items-center gap-2 shrink-0">
           {editJobId && (
-            <button type="button" onClick={onCancelEdit} className="text-sm font-semibold text-red-500 hover:text-red-700">
+            <button
+              type="button"
+              onClick={onCancelEdit}
+              className="text-sm font-semibold text-red-500 hover:text-red-700"
+            >
               Cancel Edit
             </button>
           )}
@@ -108,27 +131,67 @@ const JobForm = ({ editJobId, initialData, onSubmitSuccess, onCancelEdit, onClos
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
           <label className="block font-semibold mb-2">Job Title</label>
-          <input type="text" name="jobTitle" value={formData.jobTitle} onChange={handleChange} placeholder="Frontend Developer" className="w-full border rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500" required />
+          <input
+            type="text"
+            name="jobTitle"
+            value={formData.jobTitle}
+            onChange={handleChange}
+            placeholder="Frontend Developer"
+            className="w-full border rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          />
         </div>
         <div>
           <label className="block font-semibold mb-2">Target Audience</label>
-          <select name="targetAudience" value={formData.targetAudience} onChange={handleChange} className="w-full border rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500" required>
+          <select
+            name="targetAudience"
+            value={formData.targetAudience}
+            onChange={handleChange}
+            className="w-full border rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          >
             <option value="">Select Audience</option>
             <option value="OPEN FOR ALL">OPEN FOR ALL</option>
-            <option value="FOR CAREERSCHOOL STUDENT'S">FOR CAREERSCHOOL STUDENT'S</option>
+            <option value="FOR CAREERSCHOOL STUDENT'S">
+              FOR CAREERSCHOOL STUDENT'S
+            </option>
           </select>
         </div>
         <div>
           <label className="block font-semibold mb-2">Qualification</label>
-          <Select isMulti options={qualifications} value={formData.qualification} onChange={(selectedOptions) => setFormData({ ...formData, qualification: selectedOptions })} className="text-black" placeholder="Select Qualifications" />
+          <Select
+            isMulti
+            options={qualifications}
+            value={formData.qualification}
+            onChange={(selectedOptions) =>
+              setFormData({ ...formData, qualification: selectedOptions })
+            }
+            className="text-black"
+            placeholder="Select Qualifications"
+          />
         </div>
         <div>
           <label className="block font-semibold mb-2">Location</label>
-          <Select isMulti options={indianCities} value={formData.location} onChange={(selectedOptions) => setFormData({ ...formData, location: selectedOptions })} className="text-black" placeholder="Select Locations" />
+          <Select
+            isMulti
+            options={indianCities}
+            value={formData.location}
+            onChange={(selectedOptions) =>
+              setFormData({ ...formData, location: selectedOptions })
+            }
+            className="text-black"
+            placeholder="Select Locations"
+          />
         </div>
         <div>
           <label className="block font-semibold mb-2">Employment Type</label>
-          <select name="employmentType" value={formData.employmentType} onChange={handleChange} className="w-full border rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500" required>
+          <select
+            name="employmentType"
+            value={formData.employmentType}
+            onChange={handleChange}
+            className="w-full border rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          >
             <option value="">Select Type</option>
             <option value="FULL_TIME">Full Time</option>
             <option value="PART_TIME">Part Time</option>
@@ -138,25 +201,70 @@ const JobForm = ({ editJobId, initialData, onSubmitSuccess, onCancelEdit, onClos
         </div>
         <div>
           <label className="block font-semibold mb-2">Job Description</label>
-          <textarea name="jobDescription" value={formData.jobDescription} onChange={handleChange} rows="5" placeholder="Describe the role..." className="w-full border rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500" required></textarea>
+          <textarea
+            name="jobDescription"
+            value={formData.jobDescription}
+            onChange={handleChange}
+            rows="5"
+            placeholder="Describe the role..."
+            className="w-full border rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          ></textarea>
         </div>
         <div>
           <label className="block font-semibold mb-2">Skills</label>
-          <input type="text" name="skills" value={formData.skills} onChange={handleChange} placeholder="React, Java, Spring Boot" className="w-full border rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500" required />
+          <input
+            type="text"
+            name="skills"
+            value={formData.skills}
+            onChange={handleChange}
+            placeholder="React, Java, Spring Boot"
+            className="w-full border rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          />
         </div>
         <div>
           <label className="block font-semibold mb-2">Salary Range</label>
-          <input type="text" name="salaryRange" value={formData.salaryRange} onChange={handleChange} placeholder="6 LPA - 10 LPA" className="w-full border rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500" />
+          <input
+            type="text"
+            name="salaryRange"
+            value={formData.salaryRange}
+            onChange={handleChange}
+            placeholder="6 LPA - 10 LPA"
+            className="w-full border rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500"
+          />
         </div>
         <div>
-          <label className="block font-semibold mb-2">Experience Required</label>
-          <input type="text" name="experience" value={formData.experience} onChange={handleChange} placeholder="e.g. 2+ Years, Fresher" className="w-full border rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500" required />
+          <label className="block font-semibold mb-2">
+            Experience Required
+          </label>
+          <input
+            type="text"
+            name="experience"
+            value={formData.experience}
+            onChange={handleChange}
+            placeholder="e.g. 2+ Years, Fresher"
+            className="w-full border rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          />
         </div>
         <div>
-          <label className="block font-semibold mb-2">Application Deadline</label>
-          <input type="date" name="applicationDeadline" value={formData.applicationDeadline} onChange={handleChange} className="w-full border rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500" required />
+          <label className="block font-semibold mb-2">
+            Application Deadline
+          </label>
+          <input
+            type="date"
+            name="applicationDeadline"
+            value={formData.applicationDeadline}
+            onChange={handleChange}
+            className="w-full border rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          />
         </div>
-        <button type="submit" className="w-full bg-blue-700 hover:bg-blue-800 text-white py-4 rounded-2xl text-lg font-bold transition">
+        <button
+          type="submit"
+          className="w-full bg-blue-700 hover:bg-blue-800 text-white py-4 rounded-2xl text-lg font-bold transition"
+        >
           {editJobId ? "Update Job" : "Publish Job"}
         </button>
       </form>
