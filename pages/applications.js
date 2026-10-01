@@ -1,5 +1,22 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/router";
+
+/* Dropdown choices offered by the two inline HR tracking columns */
+const STATUS_OPTIONS = [
+  "Scheduled",
+  "Rejected",
+  "RNR",
+  "Not Interested",
+  "Moved to L&D",
+];
+const HR_NAME_OPTIONS = [
+  "Revathi",
+  "Roshini",
+  "Bharani",
+  "Vignesh J",
+  "Pooja",
+  "Beebjan",
+];
 
 /* Every filterable column of the applications table */
 const emptyFilters = {
@@ -18,25 +35,157 @@ const emptyFilters = {
   arrears: "",
   experience: "",
   source: "",
+  appliedAt: "",
+  status: "",
+  hrName: "",
+  remarks: "",
+};
+
+/* Server timestamp (ISO) -> "28 Sept 2026, 03:12 PM". Blank for rows saved before this column existed. */
+const formatAppliedAt = (value) => {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  const datePart = date.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+  const timePart = date.toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+  return `${datePart}, ${timePart}`;
 };
 
 /* Field-by-field controls shown inside the right-side filter drawer */
 const filterFields = [
-  { key: "jobTitle", label: "Job Title", type: "text", placeholder: "e.g. Telecaller" },
-  { key: "fullName", label: "Full Name", type: "text", placeholder: "e.g. Arun Kumar" },
-  { key: "phone", label: "Phone Number", type: "text", placeholder: "e.g. 9123456789" },
-  { key: "alternatePhone", label: "Alt Phone", type: "text", placeholder: "e.g. 9123456789" },
+  {
+    key: "jobTitle",
+    label: "Job Title",
+    type: "text",
+    placeholder: "e.g. Telecaller",
+  },
+  {
+    key: "fullName",
+    label: "Full Name",
+    type: "text",
+    placeholder: "e.g. Arun Kumar",
+  },
+  {
+    key: "phone",
+    label: "Phone Number",
+    type: "text",
+    placeholder: "e.g. 9123456789",
+  },
+  {
+    key: "alternatePhone",
+    label: "Alt Phone",
+    type: "text",
+    placeholder: "e.g. 9123456789",
+  },
   { key: "email", label: "Email", type: "text", placeholder: "e.g. gmail.com" },
-  { key: "location", label: "Location", type: "text", placeholder: "e.g. Chennai" },
-  { key: "language", label: "Languages Spoken", type: "text", placeholder: "e.g. TAMIL" },
-  { key: "studentId", label: "Student ID", type: "text", placeholder: "e.g. CS-1024" },
-  { key: "highestEducation", label: "Highest Education", type: "select", options: ["10th", "12th", "Graduate", "PG"] },
-  { key: "collegeName", label: "College Name", type: "text", placeholder: "e.g. Anna University" },
-  { key: "stream", label: "Stream", type: "select", options: ["BTECH", "BCA", "BSC", "BCOM", "BBA", "BA", "MCA", "MBA", "DIPLOMA", "ITI", "OTHER"] },
-  { key: "yearOfPassing", label: "Year of Passing", type: "text", placeholder: "e.g. 2025" },
-  { key: "arrears", label: "Arrears Status", type: "select", options: ["No", "Yes"] },
-  { key: "experience", label: "Experience Level", type: "select", options: ["fresher", "less than 1 year", "1-5 years", "5-10 years", "more than 10 years"] },
-  { key: "source", label: "Source", type: "select", options: ["WHATSAPP", "GOOGLE", "REFERRAL", "LINKEDIN", "FACEBOOK", "INSTAGRAM", "YOUTUBE"] },
+  {
+    key: "location",
+    label: "Location",
+    type: "text",
+    placeholder: "e.g. Chennai",
+  },
+  {
+    key: "language",
+    label: "Languages Spoken",
+    type: "text",
+    placeholder: "e.g. TAMIL",
+  },
+  {
+    key: "studentId",
+    label: "Student ID",
+    type: "text",
+    placeholder: "e.g. CS-1024",
+  },
+  {
+    key: "highestEducation",
+    label: "Highest Education",
+    type: "select",
+    options: ["10th", "12th", "Graduate", "PG"],
+  },
+  {
+    key: "collegeName",
+    label: "College Name",
+    type: "text",
+    placeholder: "e.g. Anna University",
+  },
+  {
+    key: "stream",
+    label: "Stream",
+    type: "select",
+    options: [
+      "BTECH",
+      "BCA",
+      "BSC",
+      "BCOM",
+      "BBA",
+      "BA",
+      "MCA",
+      "MBA",
+      "DIPLOMA",
+      "ITI",
+      "OTHER",
+    ],
+  },
+  {
+    key: "yearOfPassing",
+    label: "Year of Passing",
+    type: "text",
+    placeholder: "e.g. 2025",
+  },
+  {
+    key: "arrears",
+    label: "Arrears Status",
+    type: "select",
+    options: ["No", "Yes"],
+  },
+  {
+    key: "experience",
+    label: "Experience Level",
+    type: "select",
+    options: [
+      "fresher",
+      "less than 1 year",
+      "1-5 years",
+      "5-10 years",
+      "more than 10 years",
+    ],
+  },
+  {
+    key: "source",
+    label: "Source",
+    type: "select",
+    options: [
+      "WHATSAPP",
+      "GOOGLE",
+      "REFERRAL",
+      "LINKEDIN",
+      "FACEBOOK",
+      "INSTAGRAM",
+      "YOUTUBE",
+    ],
+  },
+  {
+    key: "appliedAt",
+    label: "Applied On",
+    type: "text",
+    placeholder: "e.g. 28 Sept 2026",
+  },
+  { key: "status", label: "Status", type: "select", options: STATUS_OPTIONS },
+  { key: "hrName", label: "HR-Name", type: "select", options: HR_NAME_OPTIONS },
+  {
+    key: "remarks",
+    label: "Remarks",
+    type: "text",
+    placeholder: "e.g. Shortlisted / Called",
+  },
 ];
 
 export default function Applications() {
@@ -48,25 +197,64 @@ export default function Applications() {
 
   // Right-side filter drawer state
   const [showFilter, setShowFilter] = useState(false);
-  const [draftFilters, setDraftFilters] = useState(emptyFilters); // edited inside the drawer
-  const [activeFilters, setActiveFilters] = useState(emptyFilters); // applied to the table
+  const [draftFilters, setDraftFilters] = useState(emptyFilters);
+  const [activeFilters, setActiveFilters] = useState(emptyFilters);
+
+  // Remarks inline-edit state
+  const [editingId, setEditingId] = useState(null);
+  const [remarksDraft, setRemarksDraft] = useState({});
+  const [remarksStatus, setRemarksStatus] = useState({});
+
+  // Status / HR-Name dropdown save feedback
+  const [trackingStatus, setTrackingStatus] = useState({});
+
+  // Helper to handle unauthorized access across calls
+  const handleUnauthorized = useCallback(() => {
+    sessionStorage.removeItem("isHRAuthenticated");
+    sessionStorage.removeItem("hrToken");
+    router.push("/HRLogin");
+  }, [router]);
+
+  // Helper to get auth header
+  const getAuthHeaders = () => {
+    const token = sessionStorage.getItem("hrToken");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
 
   useEffect(() => {
     const authStatus = sessionStorage.getItem("isHRAuthenticated");
-    if (authStatus !== "true") {
-      router.push("/HRLogin");
+    const token = sessionStorage.getItem("hrToken");
+    if (authStatus !== "true" || !token) {
+      handleUnauthorized();
     } else {
       setIsVerified(true);
     }
-  }, [router]);
+  }, [handleUnauthorized]);
 
   useEffect(() => {
     if (!isVerified) return;
     const fetchApplications = async () => {
       try {
-        const response = await fetch("https://career-school.co.in/api/applications");
+        const response = await fetch(
+          "https://career-school.co.in/api/applications",
+          {
+            headers: {
+              ...getAuthHeaders(),
+            },
+          },
+        );
+
+        if (response.status === 401) {
+          handleUnauthorized();
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch applications: ${response.status}`);
+        }
+
         const data = await response.json();
-        setApplications(data);
+        setApplications(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Error fetching applications:", error);
       } finally {
@@ -74,7 +262,7 @@ export default function Applications() {
       }
     };
     fetchApplications();
-  }, [isVerified]);
+  }, [isVerified, handleUnauthorized]);
 
   const handleDraftChange = (field, value) =>
     setDraftFilters((prev) => ({ ...prev, [field]: value }));
@@ -94,40 +282,325 @@ export default function Applications() {
     setActiveFilters(emptyFilters);
   };
 
+  const startEditingRemarks = (app) => {
+    setRemarksDraft((prev) => ({ ...prev, [app.id]: app.remarks || "" }));
+    setEditingId(app.id);
+  };
+
+  const cancelEditingRemarks = (appId) => {
+    setRemarksDraft((prev) => {
+      const copy = { ...prev };
+      delete copy[appId];
+      return copy;
+    });
+    setEditingId(null);
+  };
+
+  /* Saves the remark typed against one application */
+  const saveRemarks = async (app) => {
+    const draft = remarksDraft[app.id];
+    if (draft === undefined) {
+      setEditingId(null);
+      return;
+    }
+    const nextValue = draft.trim();
+    const currentValue = (app.remarks || "").trim();
+    if (nextValue === currentValue) {
+      cancelEditingRemarks(app.id);
+      return;
+    }
+    setRemarksStatus((prev) => ({ ...prev, [app.id]: "saving" }));
+    try {
+      const response = await fetch(`/api/applications/${app.id}/remarks`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify({ remarks: nextValue }),
+      });
+
+      if (response.status === 401) {
+        handleUnauthorized();
+        return;
+      }
+
+      const data = await response.json();
+      if (response.ok && data.success) {
+        setApplications((prev) =>
+          prev.map((item) =>
+            item.id === app.id
+              ? { ...item, remarks: data.remarks || "" }
+              : item,
+          ),
+        );
+        cancelEditingRemarks(app.id);
+        setRemarksStatus((prev) => ({ ...prev, [app.id]: "saved" }));
+        setTimeout(
+          () => setRemarksStatus((prev) => ({ ...prev, [app.id]: "" })),
+          2500,
+        );
+      } else {
+        setRemarksStatus((prev) => ({ ...prev, [app.id]: "error" }));
+      }
+    } catch (error) {
+      console.error("Error saving remarks:", error);
+      setRemarksStatus((prev) => ({ ...prev, [app.id]: "error" }));
+    }
+  };
+
+  /* Saves the Status / HR-Name dropdown picked for one application */
+  const saveTracking = async (app, field, value) => {
+    const key = `${app.id}:${field}`;
+    const previous = app[field] || "";
+    if (value === previous) return;
+
+    setApplications((prev) =>
+      prev.map((item) =>
+        item.id === app.id ? { ...item, [field]: value } : item,
+      ),
+    );
+    setTrackingStatus((prev) => ({ ...prev, [key]: "saving" }));
+
+    try {
+      const response = await fetch(`/api/applications/${app.id}/tracking`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify({ [field]: value }),
+      });
+
+      if (response.status === 401) {
+        handleUnauthorized();
+        return;
+      }
+
+      const data = await response.json();
+      if (response.ok && data.success) {
+        setApplications((prev) =>
+          prev.map((item) =>
+            item.id === app.id ? { ...item, [field]: data[field] || "" } : item,
+          ),
+        );
+        setTrackingStatus((prev) => ({ ...prev, [key]: "saved" }));
+        setTimeout(
+          () => setTrackingStatus((prev) => ({ ...prev, [key]: "" })),
+          2000,
+        );
+      } else {
+        setApplications((prev) =>
+          prev.map((item) =>
+            item.id === app.id ? { ...item, [field]: previous } : item,
+          ),
+        );
+        setTrackingStatus((prev) => ({ ...prev, [key]: "error" }));
+      }
+    } catch (error) {
+      console.error("Error saving tracking field:", error);
+      setApplications((prev) =>
+        prev.map((item) =>
+          item.id === app.id ? { ...item, [field]: previous } : item,
+        ),
+      );
+      setTrackingStatus((prev) => ({ ...prev, [key]: "error" }));
+    }
+  };
+
+  /* Download course enquiries export via Authorization header as a blob */
+  const exportCourseEnquiries = async () => {
+    const token = sessionStorage.getItem("hrToken");
+    if (!token) {
+      handleUnauthorized();
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        "https://career-school.co.in/api/v1/course-enquiries",
+        {
+          headers: {
+            ...getAuthHeaders(),
+          },
+        },
+      );
+
+      if (response.status === 401) {
+        handleUnauthorized();
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to export course enquiries: ${response.status}`,
+        );
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `course_enquiries_${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error exporting course enquiries:", error);
+      alert("Failed to export course enquiries. Please try again.");
+    }
+  };
+
+  /* Inline dropdown cell used by the Status and HR-Name columns */
+  const renderTrackingSelect = (app, field, options) => {
+    const key = `${app.id}:${field}`;
+    const value = app[field] || "";
+    const state = trackingStatus[key];
+
+    return (
+      <div className="flex flex-col gap-0.5">
+        <select
+          value={value}
+          onChange={(e) => saveTracking(app, field, e.target.value)}
+          className={`w-40 border rounded-lg px-2.5 py-1.5 text-sm outline-none transition ${
+            value
+              ? "border-green-300 bg-green-50 text-green-900 font-medium"
+              : "border-gray-300 bg-white text-gray-500"
+          }`}
+        >
+          <option value="">— Select —</option>
+          {options.map((opt) => (
+            <option key={opt} value={opt}>
+              {opt}
+            </option>
+          ))}
+        </select>
+        {state === "saving" && (
+          <span className="text-[11px] text-gray-400">Saving...</span>
+        )}
+        {state === "saved" && (
+          <span className="text-[11px] text-green-600 font-semibold">
+            Saved
+          </span>
+        )}
+        {state === "error" && (
+          <span className="text-[11px] text-red-500 font-semibold">
+            Save failed - try again
+          </span>
+        )}
+      </div>
+    );
+  };
+
   const activeFilterCount = Object.keys(activeFilters).length;
 
   const filteredApplications = applications.filter((app) => {
-    // Universal top search bar (searches across all columns)
     const term = searchTerm.toLowerCase().trim();
     if (term) {
       const haystack = [
-        app.jobTitle, app.fullName, app.studentId, app.phone, app.alternatePhone,
-        app.email, app.location, app.language, app.highestEducation,
-        app.collegeName, app.stream, app.yearOfPassing, app.arrears,
-        app.experience, app.source,
-      ].join(" ").toLowerCase();
+        app.jobTitle,
+        app.fullName,
+        app.studentId,
+        app.phone,
+        app.alternatePhone,
+        app.email,
+        app.location,
+        app.language,
+        app.highestEducation,
+        app.collegeName,
+        app.stream,
+        app.yearOfPassing,
+        app.arrears,
+        app.experience,
+        app.source,
+        app.appliedAt,
+        formatAppliedAt(app.appliedAt),
+        app.status,
+        app.hrName,
+        app.remarks,
+      ]
+        .join(" ")
+        .toLowerCase();
       if (!haystack.includes(term)) return false;
     }
-    // Field-by-field drawer filters — combined with (not cleared by) the search bar
     for (const [field, value] of Object.entries(activeFilters)) {
-      if (!(app[field] || "").toString().toLowerCase().includes(value.toLowerCase())) return false;
+      const needle = value.toLowerCase();
+      const candidates =
+        field === "appliedAt"
+          ? [formatAppliedAt(app.appliedAt), app.appliedAt || ""]
+          : [app[field] === null || app[field] === undefined ? "" : app[field]];
+      if (
+        !candidates.some((candidate) =>
+          candidate.toString().toLowerCase().includes(needle),
+        )
+      )
+        return false;
     }
     return true;
   });
 
   /* Export the currently visible (filtered) rows to CSV */
   const exportCsv = () => {
-    const headers = ["Job Title", "Full Name", "Student ID", "Phone", "Alt. Phone", "Email", "Location", "Language", "Education", "College", "Stream", "YOP", "Arrears", "Experience", "Source"];
-    const keys = ["jobTitle", "fullName", "studentId", "phone", "alternatePhone", "email", "location", "language", "highestEducation", "collegeName", "stream", "yearOfPassing", "arrears", "experience", "source"];
+    const headers = [
+      "Job Title",
+      "Applied On (Date & Time)",
+      "Full Name",
+      "Student ID",
+      "Phone",
+      "Alt. Phone",
+      "Email",
+      "Location",
+      "Language",
+      "Education",
+      "College",
+      "Stream",
+      "YOP",
+      "Arrears",
+      "Experience",
+      "Source",
+      "Status",
+      "HR-Name",
+      "Remarks",
+    ];
+    const keys = [
+      "jobTitle",
+      "appliedAt",
+      "fullName",
+      "studentId",
+      "phone",
+      "alternatePhone",
+      "email",
+      "location",
+      "language",
+      "highestEducation",
+      "collegeName",
+      "stream",
+      "yearOfPassing",
+      "arrears",
+      "experience",
+      "source",
+      "status",
+      "hrName",
+      "remarks",
+    ];
     const escape = (v) => {
       const s = v === null || v === undefined ? "" : String(v);
       return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
     };
     const lines = [
       headers.map(escape).join(","),
-      ...filteredApplications.map((app) => keys.map((k) => escape(app[k])).join(",")),
+      ...filteredApplications.map((app) =>
+        keys
+          .map((k) =>
+            escape(k === "appliedAt" ? formatAppliedAt(app.appliedAt) : app[k]),
+          )
+          .join(","),
+      ),
     ];
-    const blob = new Blob(["\uFEFF" + lines.join("\r\n")], { type: "text/csv;charset=utf-8;" });
+    const blob = new Blob(["\uFEFF" + lines.join("\r\n")], {
+      type: "text/csv;charset=utf-8;",
+    });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
@@ -156,11 +629,24 @@ export default function Applications() {
 
   return (
     <div className="min-h-screen bg-blue-50 p-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-4xl font-bold text-green-700">Applied Candidates</h1>
-        <button onClick={() => router.push("/hr-portal")} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold">
-          Back to HR Portal
-        </button>
+      <div className="flex flex-wrap justify-between items-center gap-4 mb-8">
+        <h1 className="text-4xl font-bold text-green-700">
+          Applied Candidates
+        </h1>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={exportCourseEnquiries}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-3 rounded-xl font-semibold shadow-sm transition"
+          >
+            Course Enquiries Report
+          </button>
+          <button
+            onClick={() => router.push("/hr-portal")}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold shadow-sm transition"
+          >
+            Back to HR Portal
+          </button>
+        </div>
       </div>
       <div className="bg-white p-6 rounded-3xl shadow-xl">
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
@@ -168,13 +654,19 @@ export default function Applications() {
             <h2 className="text-2xl font-bold text-green-700">Applications</h2>
             <span className="bg-green-100 text-green-700 px-4 py-2 rounded-full font-semibold whitespace-nowrap">
               {filteredApplications.length}
-              {(searchTerm || activeFilterCount) ? ` of ${applications.length}` : ""} Applications
+              {searchTerm || activeFilterCount
+                ? ` of ${applications.length}`
+                : ""}{" "}
+              Applications
             </span>
           </div>
           <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-            {/* Filter button (funnel) — opens the right-side drawer */}
+            {/* Filter button */}
             <button
-              onClick={() => { setDraftFilters({ ...activeFilters }); setShowFilter(true); }}
+              onClick={() => {
+                setDraftFilters({ ...activeFilters });
+                setShowFilter(true);
+              }}
               className="flex items-center gap-2 border-2 border-green-400 text-green-700 hover:bg-green-50 rounded-2xl px-4 py-2.5 font-semibold shadow-sm transition"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
@@ -189,12 +681,27 @@ export default function Applications() {
             </button>
             {/* Universal search bar */}
             <div className="flex items-center gap-2 bg-white border-2 border-green-400 focus-within:border-green-600 rounded-2xl px-3 py-2.5 shadow-sm w-full sm:w-auto sm:min-w-[320px] transition">
-              <svg className="w-4 h-4 text-gray-400 shrink-0" fill="currentColor" viewBox="0 0 512 512">
+              <svg
+                className="w-4 h-4 text-gray-400 shrink-0"
+                fill="currentColor"
+                viewBox="0 0 512 512"
+              >
                 <path d="M416 208c0 45.4-14.9 87.3-40 120.9L502.6 457c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0L341 363.9C307.4 389.1 265.4 404 220 404C98.6 404 0 305.4 0 184S98.6-36 220-36 416 86.6 416 208zM220 336c70.7 0 128-57.3 128-128S290.7 80 220 80 92 137.3 92 208s57.3 128 128 128z" />
               </svg>
-              <input type="text" placeholder="Search by job title, phone or location..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="flex-1 min-w-0 bg-transparent text-gray-700 placeholder-gray-400 outline-none text-sm" />
+              <input
+                type="text"
+                placeholder="Search by job title, phone or location..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="flex-1 min-w-0 bg-transparent text-gray-700 placeholder-gray-400 outline-none text-sm"
+              />
               {searchTerm && (
-                <button onClick={() => setSearchTerm("")} className="text-gray-400 hover:text-gray-600 text-lg leading-none shrink-0">×</button>
+                <button
+                  onClick={() => setSearchTerm("")}
+                  className="text-gray-400 hover:text-gray-600 text-lg leading-none shrink-0"
+                >
+                  ×
+                </button>
               )}
             </div>
             {/* Export to CSV/Excel */}
@@ -202,7 +709,15 @@ export default function Applications() {
               onClick={exportCsv}
               className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white rounded-2xl px-4 py-2.5 font-semibold shadow-sm transition"
             >
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                className="w-4 h-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="M12 3v11m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
               </svg>
               Export to CSV/Excel
@@ -221,6 +736,9 @@ export default function Applications() {
               <thead className="bg-green-600 text-white">
                 <tr>
                   <th className="px-4 py-4 whitespace-nowrap">Job Title</th>
+                  <th className="px-4 py-4 whitespace-nowrap">
+                    Applied On (Date &amp; Time)
+                  </th>
                   <th className="px-4 py-4 whitespace-nowrap">Full Name</th>
                   <th className="px-4 py-4 whitespace-nowrap">Student ID</th>
                   <th className="px-4 py-4 whitespace-nowrap">Phone</th>
@@ -235,26 +753,166 @@ export default function Applications() {
                   <th className="px-4 py-4 whitespace-nowrap">Arrears</th>
                   <th className="px-4 py-4 whitespace-nowrap">Experience</th>
                   <th className="px-4 py-4 whitespace-nowrap">Source</th>
+                  <th className="px-4 py-4 whitespace-nowrap">Status</th>
+                  <th className="px-4 py-4 whitespace-nowrap">HR-Name</th>
+                  <th className="px-4 py-4 whitespace-nowrap">Remarks</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredApplications.map((app, index) => (
-                  <tr key={app.id} className={`border-b ${index % 2 === 0 ? "bg-gray-50" : "bg-white"} hover:bg-green-50 transition`}>
-                    <td className="px-4 py-4 whitespace-nowrap font-semibold max-w-[220px] truncate" title={app.jobTitle}>{app.jobTitle}</td>
-                    <td className="px-4 py-4 whitespace-nowrap">{app.fullName}</td>
-                    <td className="px-4 py-4 whitespace-nowrap">{app.studentId || "—"}</td>
+                  <tr
+                    key={app.id}
+                    className={`border-b ${index % 2 === 0 ? "bg-gray-50" : "bg-white"} hover:bg-green-50 transition`}
+                  >
+                    <td
+                      className="px-4 py-4 whitespace-nowrap font-semibold max-w-[220px] truncate"
+                      title={app.jobTitle}
+                    >
+                      {app.jobTitle}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      {formatAppliedAt(app.appliedAt)}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      {app.fullName}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      {app.studentId || "—"}
+                    </td>
                     <td className="px-4 py-4 whitespace-nowrap">{app.phone}</td>
-                    <td className="px-4 py-4 whitespace-nowrap">{app.alternatePhone || "—"}</td>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      {app.alternatePhone || "—"}
+                    </td>
                     <td className="px-4 py-4 whitespace-nowrap">{app.email}</td>
-                    <td className="px-4 py-4 whitespace-nowrap">{app.location}</td>
-                    <td className="px-4 py-4 whitespace-nowrap">{app.language || "—"}</td>
-                    <td className="px-4 py-4 whitespace-nowrap">{app.highestEducation}</td>
-                    <td className="px-4 py-4 whitespace-nowrap">{app.collegeName}</td>
-                    <td className="px-4 py-4 whitespace-nowrap">{app.stream}</td>
-                    <td className="px-4 py-4 whitespace-nowrap">{app.yearOfPassing}</td>
-                    <td className="px-4 py-4 whitespace-nowrap">{app.arrears || "—"}</td>
-                    <td className="px-4 py-4 whitespace-nowrap">{app.experience}</td>
-                    <td className="px-4 py-4 whitespace-nowrap">{app.source}</td>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      {app.location}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      {app.language || "—"}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      {app.highestEducation}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      {app.collegeName}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      {app.stream}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      {app.yearOfPassing}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      {app.arrears || "—"}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      {app.experience}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      {app.source}
+                    </td>
+                    <td className="px-4 py-3 align-top">
+                      {renderTrackingSelect(app, "status", STATUS_OPTIONS)}
+                    </td>
+                    <td className="px-4 py-3 align-top">
+                      {renderTrackingSelect(app, "hrName", HR_NAME_OPTIONS)}
+                    </td>
+                    <td className="px-4 py-3 min-w-[240px]">
+                      {editingId === app.id ? (
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <input
+                              type="text"
+                              autoFocus
+                              value={
+                                remarksDraft[app.id] !== undefined
+                                  ? remarksDraft[app.id]
+                                  : app.remarks || ""
+                              }
+                              onChange={(e) =>
+                                setRemarksDraft((prev) => ({
+                                  ...prev,
+                                  [app.id]: e.target.value,
+                                }))
+                              }
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  saveRemarks(app);
+                                } else if (e.key === "Escape") {
+                                  e.preventDefault();
+                                  cancelEditingRemarks(app.id);
+                                }
+                              }}
+                              placeholder="Type remark..."
+                              className="w-48 bg-white border border-green-500 rounded-lg px-2.5 py-1 text-sm text-gray-800 placeholder-gray-400 outline-none shadow-sm"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => saveRemarks(app)}
+                              title="Save remark (Enter)"
+                              className="px-2 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-lg shadow-sm transition"
+                            >
+                              Save
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => cancelEditingRemarks(app.id)}
+                              title="Cancel (Esc)"
+                              className="px-2 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-semibold rounded-lg transition"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                          {remarksStatus[app.id] === "saving" && (
+                            <span className="block text-[11px] text-gray-400 mt-1">
+                              Saving...
+                            </span>
+                          )}
+                          {remarksStatus[app.id] === "error" && (
+                            <span className="block text-[11px] text-red-500 font-semibold mt-1">
+                              Save failed - try again
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="group flex items-center justify-between gap-2 py-1">
+                          <span
+                            className={`text-sm ${app.remarks ? "text-gray-800 font-medium" : "text-gray-400 italic"}`}
+                            title={app.remarks || "No remark added"}
+                          >
+                            {app.remarks || "—"}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => startEditingRemarks(app)}
+                            title="Edit remark"
+                            className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 hover:bg-green-100 text-gray-600 hover:text-green-700 text-xs font-medium rounded-lg border border-gray-200 hover:border-green-300 transition shrink-0"
+                          >
+                            <svg
+                              className="w-3.5 h-3.5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                              />
+                            </svg>
+                            <span>Edit</span>
+                          </button>
+                        </div>
+                      )}
+                      {remarksStatus[app.id] === "saved" &&
+                        editingId !== app.id && (
+                          <span className="block text-[11px] text-green-600 font-semibold mt-0.5">
+                            Saved
+                          </span>
+                        )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -263,15 +921,17 @@ export default function Applications() {
         )}
       </div>
 
-      {/* ── Right-side Filter Drawer ── */}
-      <div className={`fixed inset-0 z-50 ${showFilter ? "" : "pointer-events-none"}`}>
-        {/* Overlay — click outside to close */}
+      {/* Right-side Filter Drawer */}
+      <div
+        className={`fixed inset-0 z-50 ${showFilter ? "" : "pointer-events-none"}`}
+      >
         <div
           className={`absolute inset-0 bg-black/50 transition-opacity duration-300 ${showFilter ? "opacity-100" : "opacity-0"}`}
           onClick={() => setShowFilter(false)}
         />
-        {/* Slide-over panel */}
-        <div className={`absolute top-0 right-0 h-full w-full max-w-md bg-white shadow-2xl flex flex-col transition-transform duration-300 ${showFilter ? "translate-x-0" : "translate-x-full"}`}>
+        <div
+          className={`absolute top-0 right-0 h-full w-full max-w-md bg-white shadow-2xl flex flex-col transition-transform duration-300 ${showFilter ? "translate-x-0" : "translate-x-full"}`}
+        >
           <div className="flex items-center justify-between border-b border-gray-100 p-4">
             <div className="flex items-center gap-2">
               <h3 className="text-lg font-bold text-green-700">Filters</h3>
@@ -285,13 +945,17 @@ export default function Applications() {
               onClick={() => setShowFilter(false)}
               className="text-gray-400 hover:text-gray-700 text-2xl font-light p-1 rounded-full hover:bg-gray-100"
               aria-label="Close filters"
-            >✕</button>
+            >
+              ✕
+            </button>
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {filterFields.map((f) => (
               <div key={f.key}>
-                <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1.5">{f.label}</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1.5">
+                  {f.label}
+                </label>
                 {f.type === "select" ? (
                   <select
                     value={draftFilters[f.key]}
@@ -300,7 +964,9 @@ export default function Applications() {
                   >
                     <option value="">All</option>
                     {f.options.map((opt) => (
-                      <option key={opt} value={opt}>{opt}</option>
+                      <option key={opt} value={opt}>
+                        {opt}
+                      </option>
                     ))}
                   </select>
                 ) : (

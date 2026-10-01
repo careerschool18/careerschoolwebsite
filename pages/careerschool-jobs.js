@@ -7,13 +7,8 @@ import ISO6391 from "iso-639-1";
 
 const JOBS_PER_PAGE = 12;
 
-const employmentTypeBadge = (type) => {
-  if (type === "FULL_TIME") return "bg-green-500 text-white";
-  if (type === "PART_TIME") return "bg-yellow-500 text-white";
-  if (type === "CONTRACT") return "bg-purple-500 text-white";
-  if (type === "INTERNSHIP") return "bg-orange-500 text-white";
-  return "bg-blue-500 text-white";
-};
+// Constant replacing the redundant multi-branch function
+const EMPLOYMENT_TYPE_BADGE_STYLE = "bg-green-600 text-white";
 
 const formatEmploymentType = (type) => {
   return type ? type.replace(/_/g, " ") : "";
@@ -32,40 +27,62 @@ const formatDate = (dateString) => {
 };
 
 /* A job is shown to Career School students when it targets everyone
-   ("Open For All" / legacy jobs with no value) or Career School students directly. */
+   ("Open For All" / legacy jobs with no value) or Career School students directly.
+   "careerschool student" substring matches both the current option
+   ("FOR CAREERSCHOOL STUDENT'S") and the legacy value
+   ("For Careerschool Student's & Alumni") still stored on old jobs. */
 const isCareerSchoolJob = (job) => {
   const audience = (job.targetAudience || "Open For All").toLowerCase();
 
   return (
-    audience === "open for all" ||
-    audience === "for careerschool student's & alumni"
+    audience === "open for all" || audience.includes("careerschool student")
   );
 };
 
 /* ─── SVG Icons ─── */
 const IconLocation = () => (
-  <svg className="w-4 h-4 text-blue-500 shrink-0" fill="currentColor" viewBox="0 0 384 512">
+  <svg
+    className="w-4 h-4 text-blue-500 shrink-0"
+    fill="currentColor"
+    viewBox="0 0 384 512"
+  >
     <path d="M215.7 499.2C267 435 384 279.4 384 192 384 86 298 0 192 0S0 86 0 192c0 87.4 117 243 168.3 307.2c12.3 15.3 35.1 15.3 47.4 0zM192 128a64 64 0 1 1 0 128 64 64 0 1 1 0-128z" />
   </svg>
 );
 const IconSalary = () => (
-  <svg className="w-4 h-4 text-blue-500 shrink-0" fill="currentColor" viewBox="0 0 320 512">
+  <svg
+    className="w-4 h-4 text-blue-500 shrink-0"
+    fill="currentColor"
+    viewBox="0 0 320 512"
+  >
     <path d="M308 96c6.6 0 12-5.4 12-12V44c0-6.6-5.4-12-12-12H12C5.4 32 0 37.4 0 44v44.7c0 6.6 5.4 12 12 12h85.5c32.6 0 61.9 16.9 76.4 43.2H12c-6.6 0-12 5.4-12 12v42.7c0 6.6 5.4 12 12 12h176c-11.3 49.1-54.9 86.1-108.2 87.9L12 299c-6.6.2-12 5.6-12 12.2v47.6c0 3.4 1.4 6.6 3.9 8.9l176.9 163.4c2.3 2.1 5.2 3.2 8.3 3.2H255c10.8 0 16.5-12.8 9.2-20.8L101.8 352.3c67.2-10.2 116.6-64.7 121.9-131.3H308c6.6 0 12-5.4 12-12v-42.7c0-6.6-5.4-12-12-12h-80.8c-7-14.3-17.2-26.8-29.5-37H308z" />
   </svg>
 );
 const IconBag = () => (
-  <svg className="w-4 h-4 text-blue-500 shrink-0" fill="currentColor" viewBox="0 0 512 512">
+  <svg
+    className="w-4 h-4 text-blue-500 shrink-0"
+    fill="currentColor"
+    viewBox="0 0 512 512"
+  >
     <path d="M184 48H328c4.4 0 8 3.6 8 8V96H176V56c0-4.4 3.6-8 8-8zm-56 8V96H64C28.7 96 0 124.7 0 160v96H192 320 512V160c0-35.3-28.7-64-64-64H384V56c0-30.9-25.1-56-56-56H184c-30.9 0-56 25.1-56 56zM512 288H320v32c0 17.7-14.3 32-32 32H224c-17.7 0-32-14.3-32-32V288H0V416c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V288z" />
   </svg>
 );
 const IconCalendar = () => (
-  <svg className="w-4 h-4 text-blue-500 shrink-0" fill="currentColor" viewBox="0 0 448 512">
+  <svg
+    className="w-4 h-4 text-blue-500 shrink-0"
+    fill="currentColor"
+    viewBox="0 0 448 512"
+  >
     <path d="M128 0c17.7 0 32 14.3 32 32V64H288V32c0-17.7 14.3-32 32-32s32 14.3 32 32V64h48c26.5 0 48 21.5 48 48v48H0V112C0 85.5 21.5 64 48 64H96V32c0-17.7 14.3-32 32-32zM0 192H448V464c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V192zm64 80v32c0 8.8 7.2 16 16 16h32c8.8 0 16-7.2 16-16V272c0-8.8-7.2-16-16-16H80c-8.8 0-16 7.2-16 16zm128 0v32c0 8.8 7.2 16 16 16h32c8.8 0 16-7.2 16-16V272c0-8.8-7.2-16-16-16H208c-8.8 0-16 7.2-16 16zm144-16c-8.8 0-16 7.2-16 16v32c0 8.8 7.2 16 16 16h32c8.8 0 16-7.2 16-16V272c0-8.8-7.2-16-16-16H336z" />
   </svg>
 );
 const IconTarget = () => (
-  <svg className="w-4 h-4 text-blue-500 shrink-0" fill="currentColor" viewBox="0 0 512 512">
-    <path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zm0-416a160 160 0 1 1 0 320 160 160 0 1 1 0-320zm0 256a96 96 0 1 0 0-192 96 96 0 1 0 0 192z"/>
+  <svg
+    className="w-4 h-4 text-blue-500 shrink-0"
+    fill="currentColor"
+    viewBox="0 0 512 512"
+  >
+    <path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zm0-416a160 160 0 1 1 0 320 160 160 0 1 1 0-320zm0 256a96 96 0 1 0 0-192 96 96 0 1 0 0 192z" />
   </svg>
 );
 
@@ -84,11 +101,15 @@ const JobPortal = () => {
   const [showHeader, setShowHeader] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
 
-  useEffect(() => { fetchJobs(); }, []);
+  useEffect(() => {
+    fetchJobs();
+  }, []);
 
   const fetchJobs = async () => {
     try {
-      const response = await fetch("https://career-school.co.in/api/jobs/active");
+      const response = await fetch(
+        "https://career-school.co.in/api/jobs/active",
+      );
       const data = await response.json();
       const sorted = [...data].sort((a, b) => b.id - a.id);
       setJobs(sorted.filter(isCareerSchoolJob));
@@ -113,7 +134,10 @@ const JobPortal = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
-  const handleSearch = (e) => { e.preventDefault(); setCurrentPage(1); };
+  const handleSearch = (e) => {
+    e.preventDefault();
+    setCurrentPage(1);
+  };
 
   const handleApply = (jobId) => {
     if (!appliedJobs.includes(jobId)) setActiveFormJobId(jobId);
@@ -129,13 +153,13 @@ const JobPortal = () => {
   const filteredJobs = jobs.filter(
     (job) =>
       (job.jobTitle || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (job.location || "").toLowerCase().includes(searchTerm.toLowerCase())
+      (job.location || "").toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const totalPages = Math.ceil(filteredJobs.length / JOBS_PER_PAGE);
   const paginatedJobs = filteredJobs.slice(
     (currentPage - 1) * JOBS_PER_PAGE,
-    currentPage * JOBS_PER_PAGE
+    currentPage * JOBS_PER_PAGE,
   );
 
   const handlePageChange = (page) => {
@@ -145,14 +169,30 @@ const JobPortal = () => {
 
   /* Build page number array with ellipsis */
   const getPageNumbers = () => {
-    if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1);
+    if (totalPages <= 5)
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
     const pages = [];
     if (currentPage <= 3) {
       pages.push(1, 2, 3, 4, "...", totalPages);
     } else if (currentPage >= totalPages - 2) {
-      pages.push(1, "...", totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+      pages.push(
+        1,
+        "...",
+        totalPages - 3,
+        totalPages - 2,
+        totalPages - 1,
+        totalPages,
+      );
     } else {
-      pages.push(1, "...", currentPage - 1, currentPage, currentPage + 1, "...", totalPages);
+      pages.push(
+        1,
+        "...",
+        currentPage - 1,
+        currentPage,
+        currentPage + 1,
+        "...",
+        totalPages,
+      );
     }
     return pages;
   };
@@ -237,65 +277,144 @@ const JobPortal = () => {
       `}</style>
 
       <div className="min-h-screen bg-gray-50 font-sans">
-
         {/* ── Header ── */}
-        <header className={`
+        <header
+          className={`
           w-full sticky top-0 z-50
           transition-all duration-500
           ${scrolled ? "bg-white/80 backdrop-blur-xl shadow-md" : "bg-white"}
           ${showHeader ? "translate-y-0" : "-translate-y-full"}
-        `}>
+        `}
+        >
           <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-3">
-            <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.location.href = '/'}>
-              <img src="/Nav Logo/CSHR - Nav Logo.png" className="h-7 sm:h-9 md:h-10 object-contain" alt="CSHR Logo" />
+            <div
+              className="flex items-center gap-3 cursor-pointer"
+              onClick={() => (window.location.href = "/")}
+            >
+              <img
+                src="/Nav Logo/CSHR - Nav Logo.png"
+                className="h-7 sm:h-9 md:h-10 object-contain"
+                alt="CSHR Logo"
+              />
               <div className="h-6 w-[1px] bg-gray-300"></div>
-              <img src="/Zoho Images/ZOHO LOGO - Zoho Card.png" className="h-7 sm:h-7 md:h-9 object-contain" alt="Zoho Logo" />
+              <img
+                src="/Zoho Images/ZOHO LOGO - Zoho Card.png"
+                className="h-7 sm:h-7 md:h-9 object-contain"
+                alt="Zoho Logo"
+              />
             </div>
 
             <nav className="hidden md:flex items-center gap-3 ml-auto mr-4">
-              <button onClick={() => (window.location.href = 'https://www.careerschool.co.in/')}
-                className="bg-blue-100 text-blue-700 px-4 py-2 rounded font-semibold text-sm">Home</button>
-              <button onClick={() => (window.location.href = '/#courses')}
-                className="bg-blue-100 text-blue-700 px-4 py-2 rounded font-semibold text-sm">Courses</button>
+              <button
+                onClick={() =>
+                  (window.location.href = "https://www.careerschool.co.in/")
+                }
+                className="bg-blue-100 text-blue-700 px-4 py-2 rounded font-semibold text-sm"
+              >
+                Home
+              </button>
+              <button
+                onClick={() => (window.location.href = "/#courses")}
+                className="bg-blue-100 text-blue-700 px-4 py-2 rounded font-semibold text-sm"
+              >
+                Courses
+              </button>
             </nav>
 
-            <button className="md:hidden text-black" onClick={() => setMenuOpen(!menuOpen)}>
-              {menuOpen
-                ? <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                : <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
-              }
+            <button
+              className="md:hidden text-black"
+              onClick={() => setMenuOpen(!menuOpen)}
+            >
+              {menuOpen ? (
+                <svg
+                  className="h-7 w-7"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  className="h-7 w-7"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                </svg>
+              )}
             </button>
           </div>
 
           {menuOpen && (
             <div className="md:hidden bg-white shadow-md flex flex-col items-center gap-4 py-6 text-black">
               <span className="text-xs text-gray-500">Powered by Zoho</span>
-              <button onClick={() => (window.location.href = 'https://www.careerschool.co.in/')}
-                className="bg-blue-100 px-6 py-2 rounded w-4/5 text-center">Home</button>
-              <button onClick={() => (window.location.href = '/#courses')}
-                className="bg-blue-100 px-6 py-2 rounded w-4/5 text-center">Courses</button>
+              <button
+                onClick={() =>
+                  (window.location.href = "https://www.careerschool.co.in/")
+                }
+                className="bg-blue-100 px-6 py-2 rounded w-4/5 text-center"
+              >
+                Home
+              </button>
+              <button
+                onClick={() => (window.location.href = "/#courses")}
+                className="bg-blue-100 px-6 py-2 rounded w-4/5 text-center"
+              >
+                Courses
+              </button>
             </div>
           )}
         </header>
 
         {/* ── Hero ── */}
         <section className="bg-gradient-to-r from-blue-700 to-blue-500 text-white px-4 sm:px-20 py-10 text-center">
-          <h2 className="text-3xl sm:text-5xl font-bold mb-5 leading-tight">Find Your Dream Job Today</h2>
-          <p className="text-lg sm:text-xl mb-8 text-blue-100">Explore jobs from top companies and apply instantly.</p>
+          <h2 className="text-3xl sm:text-5xl font-bold mb-5 leading-tight">
+            Find Your Dream Job Today
+          </h2>
+          <p className="text-lg sm:text-xl mb-8 text-blue-100">
+            Explore jobs from top companies and apply instantly.
+          </p>
           <form onSubmit={handleSearch} className="flex justify-center">
             <div className="flex items-center gap-2 bg-white/15 backdrop-blur-md border border-white/30 rounded-2xl px-3 py-2.5 shadow-lg w-full max-w-xl mx-4 sm:mx-0">
-              <svg className="w-5 h-5 text-white/70 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1 0 6.5 6.5a7.5 7.5 0 0 0 10.15 10.15z" />
+              <svg
+                className="w-5 h-5 text-white/70 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1 0 6.5 6.5a7.5 7.5 0 0 0 10.15 10.15z"
+                />
               </svg>
               <input
                 type="text"
                 placeholder="Search jobs by title or location..."
                 value={searchTerm}
-                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="flex-1 min-w-0 bg-transparent text-white placeholder-blue-200 outline-none text-sm sm:text-base"
               />
-              <button type="submit"
-                className="bg-yellow-400 hover:bg-yellow-300 text-blue-900 font-bold px-4 sm:px-6 py-2 rounded-xl text-sm sm:text-base transition cursor-pointer shrink-0 whitespace-nowrap">
+              <button
+                type="submit"
+                className="bg-yellow-400 hover:bg-yellow-300 text-blue-900 font-bold px-4 sm:px-6 py-2 rounded-xl text-sm sm:text-base transition cursor-pointer shrink-0 whitespace-nowrap"
+              >
                 Search
               </button>
             </div>
@@ -305,10 +424,13 @@ const JobPortal = () => {
         {/* ── Jobs Grid Section ── */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-12">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-8">
-            <h3 className="text-2xl sm:text-3xl font-bold text-blue-800">Latest Job Openings</h3>
+            <h3 className="text-2xl sm:text-3xl font-bold text-blue-800">
+              Latest Job Openings
+            </h3>
             {filteredJobs.length > 0 && (
               <span className="text-sm text-gray-500 bg-white border border-blue-100 rounded-full px-4 py-1.5 font-medium self-start sm:self-auto">
-                {filteredJobs.length} {filteredJobs.length === 1 ? "job" : "jobs"} found
+                {filteredJobs.length}{" "}
+                {filteredJobs.length === 1 ? "job" : "jobs"} found
                 {totalPages > 1 && ` · Page ${currentPage} of ${totalPages}`}
               </span>
             )}
@@ -317,9 +439,16 @@ const JobPortal = () => {
           {filteredJobs.length === 0 ? (
             <div className="text-center py-20">
               <div className="text-5xl mb-4">🔍</div>
-              <p className="text-xl text-gray-600 mb-4">No jobs found matching your search.</p>
-              <button onClick={() => { setSearchTerm(""); setCurrentPage(1); }}
-                className="mt-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition font-semibold">
+              <p className="text-xl text-gray-600 mb-4">
+                No jobs found matching your search.
+              </p>
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  setCurrentPage(1);
+                }}
+                className="mt-2 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition font-semibold"
+              >
                 Clear Search
               </button>
             </div>
@@ -342,12 +471,23 @@ const JobPortal = () => {
                         </h4>
                       </div>
                       <div className="flex items-center gap-1.5 min-w-0">
-                        <span className={`inline-flex items-center whitespace-nowrap shrink-0 px-2.5 py-1 rounded-full text-[11px] font-semibold leading-none tracking-wide uppercase ${employmentTypeBadge(job.employmentType)}`}>
+                        {/* Employment Type Badge */}
+                        <span
+                          className={`inline-flex items-center whitespace-nowrap shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold leading-none tracking-wide uppercase ${EMPLOYMENT_TYPE_BADGE_STYLE}`}
+                        >
                           {formatEmploymentType(job.employmentType)}
                         </span>
+
+                        {/* Target Audience Badge */}
                         <span
                           title={job.targetAudience || "Open For All"}
-                          className="inline-flex items-center min-w-0 max-w-full truncate px-2.5 py-1 rounded-full text-[11px] font-semibold leading-none bg-blue-600 text-white"
+                          className={`inline-flex items-center min-w-0 max-w-full truncate px-2 py-0.5 rounded-full text-[10px] font-semibold leading-none text-white ${
+                            (job.targetAudience || "Open For All")
+                              .toLowerCase()
+                              .includes("careerschool")
+                              ? "bg-blue-600"
+                              : "bg-orange-600"
+                          }`}
                         >
                           {job.targetAudience || "Open For All"}
                         </span>
@@ -366,11 +506,16 @@ const JobPortal = () => {
                       </div>
                       <div className="flex items-center gap-2 text-gray-600 text-sm">
                         <IconBag />
-                        <span className="truncate">{job.experience || "Fresher"}</span>
+                        <span className="truncate">
+                          {job.experience || "Fresher"}
+                        </span>
                       </div>
                       <div className="flex items-center gap-2 text-red-400 text-sm font-semibold">
                         <IconCalendar />
-                        <span className="truncate">Last Date to Apply: {formatDate(job.applicationDeadline)}</span>
+                        <span className="truncate">
+                          Last Date to Apply:{" "}
+                          {formatDate(job.applicationDeadline)}
+                        </span>
                       </div>
                     </div>
 
@@ -394,9 +539,14 @@ const JobPortal = () => {
                     ← Previous
                   </button>
 
-                  {getPageNumbers().map((page, i) => (
+                  {getPageNumbers().map((page, i) =>
                     page === "..." ? (
-                      <span key={`ellipsis-${i}`} className="page-btn page-btn-ellipsis">…</span>
+                      <span
+                        key={`ellipsis-${i}`}
+                        className="page-btn page-btn-ellipsis"
+                      >
+                        …
+                      </span>
                     ) : (
                       <button
                         key={page}
@@ -405,8 +555,8 @@ const JobPortal = () => {
                       >
                         {page}
                       </button>
-                    )
-                  ))}
+                    ),
+                  )}
 
                   <button
                     className="page-btn page-btn-nav"
@@ -428,7 +578,10 @@ const JobPortal = () => {
       {selectedJob && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6"
-          style={{ background: "rgba(15,23,42,0.55)", backdropFilter: "blur(4px)" }}
+          style={{
+            background: "rgba(15,23,42,0.55)",
+            backdropFilter: "blur(4px)",
+          }}
           onClick={() => setSelectedJob(null)}
         >
           <div
@@ -438,8 +591,12 @@ const JobPortal = () => {
             {/* Modal header strip */}
             <div className="sticky top-0 bg-white rounded-t-3xl border-b border-gray-100 px-6 pt-5 pb-4 flex items-start justify-between gap-3 z-10">
               <div className="flex-1 min-w-0">
-                <h2 className="text-xl sm:text-2xl font-bold text-blue-900 leading-snug">{selectedJob.jobTitle}</h2>
-                <span className={`inline-block mt-2 px-3 py-1 rounded-full text-[11px] font-semibold leading-none uppercase tracking-wide whitespace-nowrap ${employmentTypeBadge(selectedJob.employmentType)}`}>
+                <h2 className="text-xl sm:text-2xl font-bold text-blue-900 leading-snug">
+                  {selectedJob.jobTitle}
+                </h2>
+                <span
+                  className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${EMPLOYMENT_TYPE_BADGE_STYLE}`}
+                >
                   {formatEmploymentType(selectedJob.employmentType)}
                 </span>
               </div>
@@ -447,7 +604,9 @@ const JobPortal = () => {
                 onClick={() => setSelectedJob(null)}
                 className="text-gray-400 hover:text-gray-700 transition text-2xl font-light shrink-0 -mt-1 p-1 rounded-full hover:bg-gray-100"
                 aria-label="Close"
-              >✕</button>
+              >
+                ✕
+              </button>
             </div>
 
             {/* Modal body */}
@@ -455,19 +614,51 @@ const JobPortal = () => {
               {/* Quick facts grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {[
-                  { icon: <IconLocation />, label: "Location", value: selectedJob.location },
-                  { icon: <IconSalary />, label: "Salary", value: selectedJob.salaryRange },
-                  { icon: <IconBag />, label: "Experience", value: selectedJob.experience || "Fresher" },
-                  { icon: <IconCalendar />, label: "Deadline", value: formatDate(selectedJob.applicationDeadline) },
-                  ...(selectedJob.targetAudience ? [{ icon: <IconTarget />, label: "Audience", value: selectedJob.targetAudience }] : [])
+                  {
+                    icon: <IconLocation />,
+                    label: "Location",
+                    value: selectedJob.location,
+                  },
+                  {
+                    icon: <IconSalary />,
+                    label: "Salary",
+                    value: selectedJob.salaryRange,
+                  },
+                  {
+                    icon: <IconBag />,
+                    label: "Experience",
+                    value: selectedJob.experience || "Fresher",
+                  },
+                  {
+                    icon: <IconCalendar />,
+                    label: "Deadline",
+                    value: formatDate(selectedJob.applicationDeadline),
+                  },
+                  ...(selectedJob.targetAudience
+                    ? [
+                        {
+                          icon: <IconTarget />,
+                          label: "Audience",
+                          value: selectedJob.targetAudience,
+                        },
+                      ]
+                    : []),
                 ].map(({ icon, label, value }) => (
-                  <div key={label} className="flex items-start gap-3 bg-blue-50 rounded-xl p-3.5">
+                  <div
+                    key={label}
+                    className="flex items-start gap-3 bg-blue-50 rounded-xl p-3.5"
+                  >
                     <div className="mt-0.5">{icon}</div>
                     <div className="min-w-0">
-                      <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide">{label}</p>
+                      <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide">
+                        {label}
+                      </p>
                       <p
-                        className={`text-sm font-medium mt-0.5 break-words ${label === "Deadline" ? "text-red-400 font-bold" : "text-gray-800"
-                          }`}
+                        className={`text-sm font-medium mt-0.5 break-words ${
+                          label === "Deadline"
+                            ? "text-red-400 font-bold"
+                            : "text-gray-800"
+                        }`}
                       >
                         {value}
                       </p>
@@ -481,14 +672,22 @@ const JobPortal = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {selectedJob.qualification && (
                     <div className="bg-gray-50 rounded-xl p-3.5">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Qualification</p>
-                      <p className="text-sm text-gray-800">{selectedJob.qualification}</p>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                        Qualification
+                      </p>
+                      <p className="text-sm text-gray-800">
+                        {selectedJob.qualification}
+                      </p>
                     </div>
                   )}
                   {selectedJob.skills && (
                     <div className="bg-gray-50 rounded-xl p-3.5">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Skills Required</p>
-                      <p className="text-sm text-gray-800">{selectedJob.skills}</p>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                        Skills Required
+                      </p>
+                      <p className="text-sm text-gray-800">
+                        {selectedJob.skills}
+                      </p>
                     </div>
                   )}
                 </div>
@@ -497,8 +696,12 @@ const JobPortal = () => {
               {/* Job description */}
               {selectedJob.jobDescription && (
                 <div>
-                  <h4 className="text-sm font-bold text-gray-700 uppercase tracking-wide mb-2">Job Description</h4>
-                  <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-line">{selectedJob.jobDescription}</p>
+                  <h4 className="text-sm font-bold text-gray-700 uppercase tracking-wide mb-2">
+                    Job Description
+                  </h4>
+                  <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-line">
+                    {selectedJob.jobDescription}
+                  </p>
                 </div>
               )}
             </div>
@@ -519,12 +722,15 @@ const JobPortal = () => {
               <button
                 onClick={() => handleApply(selectedJob.id)}
                 disabled={appliedJobs.includes(selectedJob.id)}
-                className={`shrink-0 px-8 py-2.5 rounded-xl text-sm font-bold transition ${appliedJobs.includes(selectedJob.id)
-                  ? "bg-green-600 text-white cursor-not-allowed"
-                  : "bg-blue-700 hover:bg-blue-800 text-white cursor-pointer shadow-md hover:shadow-lg"
-                  }`}
+                className={`shrink-0 px-8 py-2.5 rounded-xl text-sm font-bold transition ${
+                  appliedJobs.includes(selectedJob.id)
+                    ? "bg-green-600 text-white cursor-not-allowed"
+                    : "bg-blue-700 hover:bg-blue-800 text-white cursor-pointer shadow-md hover:shadow-lg"
+                }`}
               >
-                {appliedJobs.includes(selectedJob.id) ? "Applied ✓" : "Apply Now"}
+                {appliedJobs.includes(selectedJob.id)
+                  ? "Applied ✓"
+                  : "Apply Now"}
               </button>
             </div>
           </div>
@@ -538,11 +744,15 @@ const JobPortal = () => {
             <button
               onClick={() => setActiveFormJobId(null)}
               className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 font-bold text-xl z-10 p-2"
-            >✕</button>
+            >
+              ✕
+            </button>
             <div className="pt-4">
               <ApplicationForm
                 jobId={activeFormJobId}
-                jobTitle={jobs.find(j => j.id === activeFormJobId)?.jobTitle || ""}
+                jobTitle={
+                  jobs.find((j) => j.id === activeFormJobId)?.jobTitle || ""
+                }
                 onSuccess={() => handleFormSubmitSuccess(activeFormJobId)}
               />
             </div>
@@ -551,9 +761,7 @@ const JobPortal = () => {
       )}
 
       {/* ── Success Toast ── */}
-      {toast && (
-        <SuccessToast message={toast} onClose={() => setToast("")} />
-      )}
+      {toast && <SuccessToast message={toast} onClose={() => setToast("")} />}
     </>
   );
 };
@@ -578,7 +786,7 @@ const ApplicationForm = ({ jobId, jobTitle, onSuccess }) => {
     yearOfPassing: "",
     arrears: "",
     experience: "",
-    source: ""
+    source: "",
   });
 
   const [phoneError, setPhoneError] = useState("");
@@ -627,9 +835,9 @@ const ApplicationForm = ({ jobId, jobTitle, onSuccess }) => {
     { label: "YouTube", value: "YOUTUBE" },
   ];
 
-  const languageOptions = ISO6391.getAllNames().map(name => ({
+  const languageOptions = ISO6391.getAllNames().map((name) => ({
     label: name,
-    value: name.toUpperCase()
+    value: name.toUpperCase(),
   }));
 
   const handleChange = (e) => {
@@ -650,7 +858,7 @@ const ApplicationForm = ({ jobId, jobTitle, onSuccess }) => {
         ? `${formData.alternateCountryCode}${formData.alternatePhone}`
         : "",
       jobTitle: jobTitle,
-      language: formData.language.map(lang => lang.value).join(", ")
+      language: formData.language.map((lang) => lang.value).join(", "),
     };
 
     setEmailError("");
@@ -665,7 +873,9 @@ const ApplicationForm = ({ jobId, jobTitle, onSuccess }) => {
 
     const phoneLimit = getDigitLimit(formData.countryCode);
     if (formData.phone.length !== phoneLimit) {
-      setPhoneLengthError(`Phone number must contain exactly ${phoneLimit} digits.`);
+      setPhoneLengthError(
+        `Phone number must contain exactly ${phoneLimit} digits.`,
+      );
       return;
     }
 
@@ -676,7 +886,9 @@ const ApplicationForm = ({ jobId, jobTitle, onSuccess }) => {
 
     const alternateLimit = getDigitLimit(formData.alternateCountryCode);
     if (formData.alternatePhone.length !== alternateLimit) {
-      setPhoneError(`Alternate number must contain exactly ${alternateLimit} digits.`);
+      setPhoneError(
+        `Alternate number must contain exactly ${alternateLimit} digits.`,
+      );
       return;
     }
 
@@ -685,7 +897,9 @@ const ApplicationForm = ({ jobId, jobTitle, onSuccess }) => {
       formData.phone === formData.alternatePhone &&
       formData.countryCode === formData.alternateCountryCode
     ) {
-      setPhoneError("Alternate phone number must be different from the primary phone number.");
+      setPhoneError(
+        "Alternate phone number must be different from the primary phone number.",
+      );
       return;
     }
 
@@ -699,16 +913,19 @@ const ApplicationForm = ({ jobId, jobTitle, onSuccess }) => {
   /* Called from the consent modal — data goes to /applications only when "I Agree" is ticked */
   const handleConsentSubmit = async () => {
     if (!consentAgreed) {
-      setConsentError("Please tick \"I Agree\" to submit your application.");
+      setConsentError('Please tick "I Agree" to submit your application.');
       return;
     }
     setConsentError("");
     try {
-      const response = await fetch("https://career-school.co.in/api/applications", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(pendingSubmission)
-      });
+      const response = await fetch(
+        "https://career-school.co.in/api/applications",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(pendingSubmission),
+        },
+      );
       const result = await response.json();
 
       if (response.ok && result.success) {
@@ -718,7 +935,8 @@ const ApplicationForm = ({ jobId, jobTitle, onSuccess }) => {
         setShowConsent(false);
         const errorMessages = result?.errors
           ? Object.values(result.errors).join(" ")
-          : result?.message || "Failed to submit application. Please try again.";
+          : result?.message ||
+            "Failed to submit application. Please try again.";
         alert(errorMessages);
       }
     } catch (error) {
@@ -729,27 +947,60 @@ const ApplicationForm = ({ jobId, jobTitle, onSuccess }) => {
 
   return (
     <div className="bg-white p-6 md:p-8 rounded-3xl font-sans">
-      <h3 className="text-2xl font-bold text-blue-800 mb-6 text-center">Complete Your Application</h3>
+      <h3 className="text-2xl font-bold text-blue-800 mb-6 text-center">
+        Complete Your Application
+      </h3>
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Full Name (As per Records)</label>
-          <input type="text" name="fullName" value={formData.fullName} onChange={handleChange} placeholder="Enter full name" className="w-full bg-gray-50 border-0 rounded-2xl p-4 text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 outline-none transition" required />
+          <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">
+            Full Name (As per Records)
+          </label>
+          <input
+            type="text"
+            name="fullName"
+            value={formData.fullName}
+            onChange={handleChange}
+            placeholder="Enter full name"
+            className="w-full bg-gray-50 border-0 rounded-2xl p-4 text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 outline-none transition"
+            required
+          />
         </div>
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2"> Careerschool Registration Number : </label>
-          <input type="text" name="studentId" value={formData.studentId} onChange={handleChange} placeholder="Enter your Careerschool Registration Number" className="w-full bg-gray-50 border-0 rounded-2xl p-4 text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 outline-none transition" />
+          <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">
+            {" "}
+            Careerschool Registration Number :{" "}
+          </label>
+          <input
+            type="text"
+            name="studentId"
+            value={formData.studentId}
+            onChange={handleChange}
+            placeholder="Enter your Careerschool Registration Number"
+            className="w-full bg-gray-50 border-0 rounded-2xl p-4 text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 outline-none transition"
+          />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Phone Number (WhatsApp)</label>
+            <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">
+              Phone Number (WhatsApp)
+            </label>
             <div className="flex gap-2">
-              <select name="countryCode" value={formData.countryCode} onChange={handleChange}
-                className="bg-gray-50 border-0 rounded-2xl p-4 text-gray-800 outline-none min-w-[140px]">
+              <select
+                name="countryCode"
+                value={formData.countryCode}
+                onChange={handleChange}
+                className="bg-gray-50 border-0 rounded-2xl p-4 text-gray-800 outline-none min-w-[140px]"
+              >
                 {countryCodeOptions.map((country) => (
-                  <option key={country.value} value={country.value}>{country.label}</option>
+                  <option key={country.value} value={country.value}>
+                    {country.label}
+                  </option>
                 ))}
               </select>
-              <input type="tel" name="phone" value={formData.phone}
+              <input
+                type="tel"
+                name="phone"
+                value={formData.phone}
                 onChange={(e) => {
                   const digitsOnly = e.target.value.replace(/\D/g, "");
                   const limit = getDigitLimit(formData.countryCode);
@@ -759,22 +1010,37 @@ const ApplicationForm = ({ jobId, jobTitle, onSuccess }) => {
                   }
                 }}
                 placeholder="WhatsApp Number"
-                className="w-full bg-gray-50 border-0 rounded-2xl p-4 text-gray-800" required />
+                className="w-full bg-gray-50 border-0 rounded-2xl p-4 text-gray-800"
+                required
+              />
             </div>
             {phoneLengthError && (
-              <p className="mt-2 text-sm text-red-600 font-medium">{phoneLengthError}</p>
+              <p className="mt-2 text-sm text-red-600 font-medium">
+                {phoneLengthError}
+              </p>
             )}
           </div>
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Alternate Phone Number</label>
+            <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">
+              Alternate Phone Number
+            </label>
             <div className="flex gap-2">
-              <select name="alternateCountryCode" value={formData.alternateCountryCode} onChange={handleChange}
-                className="bg-gray-50 border-0 rounded-2xl p-4 text-gray-800 outline-none min-w-[140px]">
+              <select
+                name="alternateCountryCode"
+                value={formData.alternateCountryCode}
+                onChange={handleChange}
+                className="bg-gray-50 border-0 rounded-2xl p-4 text-gray-800 outline-none min-w-[140px]"
+              >
                 {countryCodeOptions.map((country) => (
-                  <option key={country.value} value={country.value}>{country.label}</option>
+                  <option key={country.value} value={country.value}>
+                    {country.label}
+                  </option>
                 ))}
               </select>
-              <input type="tel" name="alternatePhone" value={formData.alternatePhone}
+              <input
+                type="tel"
+                name="alternatePhone"
+                value={formData.alternatePhone}
                 onChange={(e) => {
                   const digitsOnly = e.target.value.replace(/\D/g, "");
                   const limit = getDigitLimit(formData.alternateCountryCode);
@@ -784,44 +1050,108 @@ const ApplicationForm = ({ jobId, jobTitle, onSuccess }) => {
                   }
                 }}
                 placeholder="Alternate Number"
-                className="w-full bg-gray-50 border-0 rounded-2xl p-4 text-gray-800" required />
+                className="w-full bg-gray-50 border-0 rounded-2xl p-4 text-gray-800"
+                required
+              />
             </div>
             {phoneError && (
-              <p className="mt-2 text-sm text-red-600 font-medium">{phoneError}</p>
+              <p className="mt-2 text-sm text-red-600 font-medium">
+                {phoneError}
+              </p>
             )}
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Email</label>
-            <input type="email" name="email" value={formData.email}
-              onChange={(e) => { handleChange(e); setEmailError(""); }}
+            <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">
+              Email
+            </label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={(e) => {
+                handleChange(e);
+                setEmailError("");
+              }}
               placeholder="email@example.com"
-              className="w-full bg-gray-50 border-0 rounded-2xl p-4 text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 outline-none transition" required />
-            {emailError && <p className="mt-2 text-sm text-red-600 font-medium">{emailError}</p>}
+              className="w-full bg-gray-50 border-0 rounded-2xl p-4 text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 outline-none transition"
+              required
+            />
+            {emailError && (
+              <p className="mt-2 text-sm text-red-600 font-medium">
+                {emailError}
+              </p>
+            )}
           </div>
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Current Location? (Area & City)</label>
-            <input type="text" name="location" value={formData.location} onChange={handleChange} placeholder="e.g. Adyar, Chennai" className="w-full bg-gray-50 border-0 rounded-2xl p-4 text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 outline-none transition" required />
+            <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">
+              Current Location? (Area & City)
+            </label>
+            <input
+              type="text"
+              name="location"
+              value={formData.location}
+              onChange={handleChange}
+              placeholder="e.g. Adyar, Chennai"
+              className="w-full bg-gray-50 border-0 rounded-2xl p-4 text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 outline-none transition"
+              required
+            />
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Languages You Speak?</label>
-            <Select isMulti={true} name="language" options={languageOptions} value={formData.language}
-              onChange={(selectedOptions) => setFormData({ ...formData, language: selectedOptions || [] })}
+            <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">
+              Languages You Speak?
+            </label>
+            <Select
+              isMulti={true}
+              name="language"
+              options={languageOptions}
+              value={formData.language}
+              onChange={(selectedOptions) =>
+                setFormData({ ...formData, language: selectedOptions || [] })
+              }
               placeholder="Select Languages..."
               styles={{
-                control: (base) => ({ ...base, backgroundColor: "#f9fafb", border: "none", borderRadius: "1rem", padding: "0.5rem", boxShadow: "none" }),
-                multiValue: (base) => ({ ...base, backgroundColor: "#e5e7eb", borderRadius: "0.5rem", padding: "2px 6px" }),
-                multiValueLabel: (base) => ({ ...base, color: "#1f2937", fontSize: "0.875rem" }),
-                multiValueRemove: (base) => ({ ...base, color: "#9ca3af", ":hover": { backgroundColor: "#d1d5db", color: "#111827" } }),
+                control: (base) => ({
+                  ...base,
+                  backgroundColor: "#f9fafb",
+                  border: "none",
+                  borderRadius: "1rem",
+                  padding: "0.5rem",
+                  boxShadow: "none",
+                }),
+                multiValue: (base) => ({
+                  ...base,
+                  backgroundColor: "#e5e7eb",
+                  borderRadius: "0.5rem",
+                  padding: "2px 6px",
+                }),
+                multiValueLabel: (base) => ({
+                  ...base,
+                  color: "#1f2937",
+                  fontSize: "0.875rem",
+                }),
+                multiValueRemove: (base) => ({
+                  ...base,
+                  color: "#9ca3af",
+                  ":hover": { backgroundColor: "#d1d5db", color: "#111827" },
+                }),
               }}
             />
           </div>
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Highest Education</label>
-            <select name="highestEducation" value={formData.highestEducation} onChange={handleChange} className="w-full bg-gray-50 border-0 rounded-2xl p-4 text-gray-800 focus:ring-2 focus:ring-blue-500 outline-none transition appearance-none" required>
+            <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">
+              Highest Education
+            </label>
+            <select
+              name="highestEducation"
+              value={formData.highestEducation}
+              onChange={handleChange}
+              className="w-full bg-gray-50 border-0 rounded-2xl p-4 text-gray-800 focus:ring-2 focus:ring-blue-500 outline-none transition appearance-none"
+              required
+            >
               <option value="">Select Education</option>
               <option value="10th">10th</option>
               <option value="12th">12th</option>
@@ -832,27 +1162,65 @@ const ApplicationForm = ({ jobId, jobTitle, onSuccess }) => {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Name of College?</label>
-            <input type="text" name="collegeName" value={formData.collegeName} onChange={handleChange} placeholder="College Name" className="w-full bg-gray-50 border-0 rounded-2xl p-4 text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 outline-none transition" required />
+            <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">
+              Name of College?
+            </label>
+            <input
+              type="text"
+              name="collegeName"
+              value={formData.collegeName}
+              onChange={handleChange}
+              placeholder="College Name"
+              className="w-full bg-gray-50 border-0 rounded-2xl p-4 text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 outline-none transition"
+              required
+            />
           </div>
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Stream / Course of Study</label>
-            <select name="stream" value={formData.stream} onChange={handleChange} className="w-full bg-gray-50 border-0 rounded-2xl p-4 text-gray-800 focus:ring-2 focus:ring-blue-500 outline-none transition appearance-none" required>
+            <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">
+              Stream / Course of Study
+            </label>
+            <select
+              name="stream"
+              value={formData.stream}
+              onChange={handleChange}
+              className="w-full bg-gray-50 border-0 rounded-2xl p-4 text-gray-800 focus:ring-2 focus:ring-blue-500 outline-none transition appearance-none"
+              required
+            >
               <option value="">Select Degree</option>
               {degreeOptions.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
               ))}
             </select>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Year of Passing</label>
-            <input type="number" name="yearOfPassing" value={formData.yearOfPassing} onChange={handleChange} placeholder="e.g. 2025" className="w-full bg-gray-50 border-0 rounded-2xl p-4 text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 outline-none transition" required />
+            <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">
+              Year of Passing
+            </label>
+            <input
+              type="number"
+              name="yearOfPassing"
+              value={formData.yearOfPassing}
+              onChange={handleChange}
+              placeholder="e.g. 2025"
+              className="w-full bg-gray-50 border-0 rounded-2xl p-4 text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 outline-none transition"
+              required
+            />
           </div>
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Any Arrears?</label>
-            <select name="arrears" value={formData.arrears} onChange={handleChange} className="w-full bg-gray-50 border-0 rounded-2xl p-4 text-gray-800 focus:ring-2 focus:ring-blue-500 outline-none transition appearance-none" required>
+            <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">
+              Any Arrears?
+            </label>
+            <select
+              name="arrears"
+              value={formData.arrears}
+              onChange={handleChange}
+              className="w-full bg-gray-50 border-0 rounded-2xl p-4 text-gray-800 focus:ring-2 focus:ring-blue-500 outline-none transition appearance-none"
+              required
+            >
               <option value="">Select Option</option>
               <option value="No">No</option>
               <option value="Yes">Yes</option>
@@ -861,8 +1229,16 @@ const ApplicationForm = ({ jobId, jobTitle, onSuccess }) => {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Experience</label>
-            <select name="experience" value={formData.experience} onChange={handleChange} className="w-full bg-gray-50 border-0 rounded-2xl p-4 text-gray-800 focus:ring-2 focus:ring-blue-500 outline-none transition appearance-none" required>
+            <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">
+              Experience
+            </label>
+            <select
+              name="experience"
+              value={formData.experience}
+              onChange={handleChange}
+              className="w-full bg-gray-50 border-0 rounded-2xl p-4 text-gray-800 focus:ring-2 focus:ring-blue-500 outline-none transition appearance-none"
+              required
+            >
               <option value="">Select Experience</option>
               <option value="fresher">Fresher</option>
               <option value="less than 1 year">Less than 1 year</option>
@@ -872,16 +1248,29 @@ const ApplicationForm = ({ jobId, jobTitle, onSuccess }) => {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">How did you know about Careerschool?</label>
-            <select name="source" value={formData.source} onChange={handleChange} className="w-full bg-gray-50 border-0 rounded-2xl p-4 text-gray-800 focus:ring-2 focus:ring-blue-500 outline-none transition appearance-none" required>
+            <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">
+              How did you know about Careerschool?
+            </label>
+            <select
+              name="source"
+              value={formData.source}
+              onChange={handleChange}
+              className="w-full bg-gray-50 border-0 rounded-2xl p-4 text-gray-800 focus:ring-2 focus:ring-blue-500 outline-none transition appearance-none"
+              required
+            >
               <option value="">Choose Source</option>
               {sourceOptions.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
               ))}
             </select>
           </div>
         </div>
-        <button type="submit" className="w-full bg-blue-700 hover:bg-blue-800 text-white py-4 rounded-2xl text-md font-bold transition mt-6">
+        <button
+          type="submit"
+          className="w-full bg-blue-700 hover:bg-blue-800 text-white py-4 rounded-2xl text-md font-bold transition mt-6"
+        >
           Submit Application
         </button>
       </form>
@@ -890,9 +1279,13 @@ const ApplicationForm = ({ jobId, jobTitle, onSuccess }) => {
       {showConsent && (
         <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm flex justify-center items-center p-4">
           <div className="bg-white rounded-3xl w-full max-w-md p-6 md:p-8 shadow-2xl">
-            <h4 className="text-xl font-bold text-blue-800 mb-4 text-center">Submit Your Application</h4>
+            <h4 className="text-xl font-bold text-blue-800 mb-4 text-center">
+              Submit Your Application
+            </h4>
             <p className="text-sm font-bold text-gray-800 leading-relaxed mb-5 bg-blue-50 border border-blue-100 rounded-2xl p-4">
-              I agree to receive calls and messages from Careerschool regarding job opportunities, upskilling programs, and other career development information.
+              I agree to receive calls and messages from Careerschool regarding
+              job opportunities, upskilling programs, and other career
+              development information.
             </p>
             <label className="flex items-start gap-3 cursor-pointer select-none">
               <input
@@ -909,7 +1302,9 @@ const ApplicationForm = ({ jobId, jobTitle, onSuccess }) => {
               </span>
             </label>
             {consentError && (
-              <p className="mt-2 text-sm text-red-600 font-medium">{consentError}</p>
+              <p className="mt-2 text-sm text-red-600 font-medium">
+                {consentError}
+              </p>
             )}
             <div className="flex gap-3 justify-end mt-6">
               <button
@@ -941,20 +1336,43 @@ export default function CareerschoolJobs() {
   return (
     <>
       <Head>
-        <title>Apply for Top IT & Non-IT Jobs in India | Careerschool Jobs</title>
+        <title>
+          Apply for Top IT & Non-IT Jobs in India | Careerschool Jobs
+        </title>
         <meta
           name="description"
           key="description"
           content="Looking for Full Time, Part Time, Internships and Contract based roles in IT, Tech, Finance, HR, Marketing, Non-IT? Designed for freshers, job seekers, career gaps, experienced and more."
         />
         <meta name="robots" content="index, follow" />
-        <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1" />
-        <link rel="canonical" href="https://careerschool.co.in/careerschool-jobs" />
-        <meta property="og:title" content="Apply for Top IT & Non-IT Jobs in India | Careerschool Jobs" />
-        <meta property="og:description" content="Looking for Full Time, Part Time, Internships and Contract based roles in IT, Tech, Finance, HR, Marketing, Non-IT? Designed for freshers, job seekers, career gaps, experienced and more." />
-        <meta property="og:url" content="https://careerschool.co.in/careerschool-jobs" />
-        <meta property="og:site_name" content="Careerschool HR & IT Solutions" />
-        <meta property="og:image" content="https://careerschool.co.in/og/careerschool-it-non-it-jobs-india.webp" />
+        <meta
+          name="googlebot"
+          content="index, follow, max-image-preview:large, max-snippet:-1"
+        />
+        <link
+          rel="canonical"
+          href="https://careerschool.co.in/careerschool-jobs"
+        />
+        <meta
+          property="og:title"
+          content="Apply for Top IT & Non-IT Jobs in India | Careerschool Jobs"
+        />
+        <meta
+          property="og:description"
+          content="Looking for Full Time, Part Time, Internships and Contract based roles in IT, Tech, Finance, HR, Marketing, Non-IT? Designed for freshers, job seekers, career gaps, experienced and more."
+        />
+        <meta
+          property="og:url"
+          content="https://careerschool.co.in/careerschool-jobs"
+        />
+        <meta
+          property="og:site_name"
+          content="Careerschool HR & IT Solutions"
+        />
+        <meta
+          property="og:image"
+          content="https://careerschool.co.in/og/careerschool-it-non-it-jobs-india.webp"
+        />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:locale" content="en_IN" />
