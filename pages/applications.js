@@ -215,16 +215,16 @@ export default function Applications() {
     router.push("/HRLogin");
   }, [router]);
 
-  // Helper to get auth header
+  // Helper to get auth header (sends token only if one exists)
   const getAuthHeaders = () => {
     const token = sessionStorage.getItem("hrToken");
     return token ? { Authorization: `Bearer ${token}` } : {};
   };
 
+  // Check authentication status (Aligned with hr-portal.js)
   useEffect(() => {
     const authStatus = sessionStorage.getItem("isHRAuthenticated");
-    const token = sessionStorage.getItem("hrToken");
-    if (authStatus !== "true" || !token) {
+    if (authStatus !== "true") {
       handleUnauthorized();
     } else {
       setIsVerified(true);
@@ -245,6 +245,7 @@ export default function Applications() {
         );
 
         if (response.status === 401) {
+          console.warn("Unauthorized: /api/applications returned 401");
           handleUnauthorized();
           return;
         }
@@ -408,10 +409,10 @@ export default function Applications() {
     }
   };
 
-  /* Download course enquiries export via Authorization header as a blob */
+  /* Download course enquiries export */
   const exportCourseEnquiries = async () => {
-    const token = sessionStorage.getItem("hrToken");
-    if (!token) {
+    const isAuth = sessionStorage.getItem("isHRAuthenticated");
+    if (isAuth !== "true") {
       handleUnauthorized();
       return;
     }

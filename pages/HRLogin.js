@@ -21,20 +21,55 @@ export default function LoginPage() {
         },
       );
 
-      const data = await response.json();
+      const responseText = await response.text();
 
-      if (response.ok && (data.status === "success" || data.token)) {
-        // Save the token for API authorization headers
-        if (data.token) {
-          sessionStorage.setItem("hrToken", data.token);
+      if (response.ok) {
+        let isSuccess = false;
+        let token = null;
+
+        try {
+          const data = JSON.parse(responseText);
+          // Point 1: If response is JSON, strictly require success status or a valid token
+          if (
+            data.status === "success" ||
+            data.token ||
+            data.accessToken ||
+            data.jwt
+          ) {
+            isSuccess = true;
+            token =
+              data.token ||
+              data.accessToken ||
+              data.jwt ||
+              data.data?.token ||
+              null;
+          }
+        } catch {
+          // Point 1: If plain text, verify it matches the backend's known success string
+          if (responseText.trim().toLowerCase().includes("login successful")) {
+            isSuccess = true;
+          }
         }
-        sessionStorage.setItem("isHRAuthenticated", "true");
 
-        router.push("/hr-portal");
-      } else {
-        setLoginError(data.message || "Invalid credentials");
+        if (isSuccess) {
+          sessionStorage.setItem("isHRAuthenticated", "true");
+
+          // Point 2: Do not set dummy 'active_session'. Only store if a real token exists.
+          if (token) {
+            sessionStorage.setItem("hrToken", token);
+          } else {
+            sessionStorage.removeItem("hrToken");
+          }
+
+          router.push("/hr-portal");
+          return;
+        }
       }
+
+      // Handle unverified response bodies or non-2xx status codes
+      setLoginError(responseText || "Invalid credentials");
     } catch (err) {
+      console.error("Login request error:", err);
       setLoginError("Cannot connect to server");
     }
   };
