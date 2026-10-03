@@ -21,20 +21,32 @@ export default function LoginPage() {
         },
       );
 
-      const data = await response.json();
+      // Handle the plain string returned by Spring Boot
+      const responseText = await response.text();
 
-      if (response.ok && (data.status === "success" || data.token)) {
-        // Save the token for API authorization headers
+      if (response.ok) {
+        // Try parsing JSON if token is added later, otherwise fallback safely
+        let data = {};
+        try {
+          data = JSON.parse(responseText);
+        } catch {
+          data = { message: responseText };
+        }
+
+        // Store active session keys
+        sessionStorage.setItem("isHRAuthenticated", "true");
         if (data.token) {
           sessionStorage.setItem("hrToken", data.token);
+        } else {
+          sessionStorage.setItem("hrToken", "active_session");
         }
-        sessionStorage.setItem("isHRAuthenticated", "true");
 
         router.push("/hr-portal");
       } else {
-        setLoginError(data.message || "Invalid credentials");
+        setLoginError(responseText || "Invalid credentials");
       }
     } catch (err) {
+      console.error("Login request error:", err);
       setLoginError("Cannot connect to server");
     }
   };
