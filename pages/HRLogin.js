@@ -21,30 +21,53 @@ export default function LoginPage() {
         },
       );
 
-      // Handle the plain string returned by Spring Boot
       const responseText = await response.text();
 
       if (response.ok) {
-        // Try parsing JSON if token is added later, otherwise fallback safely
-        let data = {};
+        let isSuccess = false;
+        let token = null;
+
         try {
-          data = JSON.parse(responseText);
+          const data = JSON.parse(responseText);
+          // Point 1: If response is JSON, strictly require success status or a valid token
+          if (
+            data.status === "success" ||
+            data.token ||
+            data.accessToken ||
+            data.jwt
+          ) {
+            isSuccess = true;
+            token =
+              data.token ||
+              data.accessToken ||
+              data.jwt ||
+              data.data?.token ||
+              null;
+          }
         } catch {
-          data = { message: responseText };
+          // Point 1: If plain text, verify it matches the backend's known success string
+          if (responseText.trim().toLowerCase().includes("login successful")) {
+            isSuccess = true;
+          }
         }
 
-        // Store active session keys
-        sessionStorage.setItem("isHRAuthenticated", "true");
-        if (data.token) {
-          sessionStorage.setItem("hrToken", data.token);
-        } else {
-          sessionStorage.setItem("hrToken", "active_session");
-        }
+        if (isSuccess) {
+          sessionStorage.setItem("isHRAuthenticated", "true");
 
-        router.push("/hr-portal");
-      } else {
-        setLoginError(responseText || "Invalid credentials");
+          // Point 2: Do not set dummy 'active_session'. Only store if a real token exists.
+          if (token) {
+            sessionStorage.setItem("hrToken", token);
+          } else {
+            sessionStorage.removeItem("hrToken");
+          }
+
+          router.push("/hr-portal");
+          return;
+        }
       }
+
+      // Handle unverified response bodies or non-2xx status codes
+      setLoginError(responseText || "Invalid credentials");
     } catch (err) {
       console.error("Login request error:", err);
       setLoginError("Cannot connect to server");
