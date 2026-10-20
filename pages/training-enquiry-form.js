@@ -168,7 +168,7 @@ export default function Form() {
   const experienceOptions = [
     { label: "Fresher", value: "FRESHER" },
     { label: "6 Months - 1 Year", value: "ONE_TO_TWO" },
-    { label: "1 Year - 3 Years", value: "ONE_TO_TWO" },
+    { label: "1 Year - 3 Years", value: "ONE_TO_THREE" },
     { label: "3 Years - 5 Years", value: "THREE_TO_FIVE" },
     { label: "5+ Years", value: "FIVE_PLUS" },
   ];
