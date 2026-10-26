@@ -92,7 +92,7 @@ export default function AccountsPanel() {
     }
   };
 
-  const roleBadge = (role) => "bg-blue-100 text-blue-700";
+  const roleBadge = () => "bg-blue-100 text-blue-700";
 
   return (
     <div className="bg-white p-6 rounded-3xl shadow-xl">
